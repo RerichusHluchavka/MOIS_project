@@ -1,0 +1,142 @@
+
+services:
+
+  # Authentication Service Database
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5435:5432"  # auth-db
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+
+  # Authentication Service - Node.js Application
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: auth-db
+      DB_PORT: 5432
+      DB_NAME: auth_db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      JWT_SECRET: jwt-secret-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+      PORT: 3000
+      NODE_ENV: development
+    depends_on:
+      - auth-db
+    volumes:
+      - ./auth-service:/app  
+      - /app/node_modules
+
+  # Prisoner Service Database
+  prisoner-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: prisoner_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"  # prisoner-db
+    volumes:
+      - prisoner_data:/var/lib/postgresql/data
+
+  # Prisoner Service - Node.js Application
+  prisoner-service:
+    build: ./prisoner-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: prisoner-db
+      DB_PORT: 5432
+      DB_NAME: prisoner_db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      JWT_SECRET: jwt-secret-key-change-in-production
+      PORT: 3001
+      NODE_ENV: development
+    depends_on:
+      - auth-service
+      - prisoner-db
+    volumes:
+      - ./prisoner-service:/app  
+      - /app/node_modules
+
+  # Inventory Service Database  
+  inventory-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"  # inventory-db
+    volumes:
+      - inventory_data:/var/lib/postgresql/data
+
+  # Inventory Service - Node.js Application
+  inventory-service:
+      build: ./inventory-service
+      ports:
+        - "3002:3002"
+      environment:
+        DB_HOST: inventory-db
+        DB_PORT: 5432
+        DB_NAME: inventory_db
+        DB_USER: admin
+        DB_PASSWORD: admin
+        JWT_SECRET: jwt-secret-key-change-in-production
+        PORT: 3002
+        NODE_ENV: development
+      depends_on:
+        - auth-service
+        - inventory-db
+      volumes:
+        - ./inventory-service:/app  
+        - /app/node_modules
+
+
+  # Kitchen Service Database
+  kitchen-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: kitchen_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5434:5432"  # kitchen-db
+    volumes:
+      - kitchen_data:/var/lib/postgresql/data
+
+  # Kitchen Service - Node.js Application
+  kitchen-service:
+    build: ./kitchen-service
+    ports:
+      - "3003:3003"
+    environment:
+      DB_HOST: kitchen-db
+      DB_PORT: 5432
+      DB_NAME: kitchen_db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      JWT_SECRET: jwt-secret-key-change-in-production
+      PORT: 3003
+      NODE_ENV: development
+    depends_on:
+      - auth-service
+      - kitchen-db
+    volumes:
+      - ./kitchen-service:/app  
+      - /app/node_modules
+
+
+volumes:
+  auth_data:
+  prisoner_data:
+  inventory_data:
+  kitchen_data:
