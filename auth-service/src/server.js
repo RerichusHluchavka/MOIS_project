@@ -39,7 +39,7 @@ async function initializeDatabase() {
     const defaultUsers = [
       { username: 'admin', password: hashedPassword, role: 'admin' },
       { username: 'kitchen', password: hashedPassword, role: 'kitchen' },
-      { username: 'storage', password: hashedPassword, role: 'storage' },
+      { username: 'inventory', password: hashedPassword, role: 'inventory' },
       { username: 'prison', password: hashedPassword, role: 'prison' }
     ];
 

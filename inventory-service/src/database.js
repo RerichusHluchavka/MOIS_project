@@ -21,7 +21,7 @@ pool.on('error', (err) => {
 // Funkce pro získání všech položek
 async function getAllItems() {
   try {
-    const result = await pool.query('SELECT * FROM inventory_items ORDER BY id');
+    const result = await pool.query('SELECT * FROM items ORDER BY item_id;');
     return result.rows;
   } catch (error) {
     console.error('Error getting inventory items:', error);

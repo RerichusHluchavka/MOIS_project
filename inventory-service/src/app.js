@@ -1,5 +1,7 @@
 const express = require('express');
-const cors = require('cors');
+const { authenticateToken } = require('../auth-middleware');
+const router = express.Router();
+
 const { 
   getAllItems, 
   getItemById, 
@@ -13,20 +15,23 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Middleware
-app.use(cors());
+//Middleware
 app.use(express.json());
 
 // Routes
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'Inventory service OK' });
+});
+
 // GET - všechny položky
-app.get('/inventory', async (req, res) => {
+app.get('/inventory', authenticateToken(['admin', 'inventory']), async (req, res) => {
   try {
     const items = await getAllItems();
     res.json({
-      success: true,
-      data: items,
-      count: items.length
+      message: 'Inventory data accessed successfully',
+      user: req.user,
+      data: items
     });
   } catch (error) {
     res.status(500).json({
@@ -36,6 +41,17 @@ app.get('/inventory', async (req, res) => {
   }
 });
 
+router.get('/test', (req, res) => {
+  res.json({ message: 'Inventory service is working!' });
+});
+
+module.exports = router;
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Inventory service running on port ${PORT}`);
+});
+/*
 // GET - položka podle ID
 app.get('/inventory/:id', async (req, res) => {
   try {
@@ -215,7 +231,7 @@ app.patch('/inventory/:id/decrease', async (req, res) => {
   }
 });
 
-// Health check
+// Public health check
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -245,4 +261,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Inventory service running on http://0.0.0.0:${PORT}`);
   console.log(`📊 PostgreSQL: inventory_db`);
-});
+});*/
