@@ -1,4 +1,3 @@
-// utils/routeHandlers.js
 function createRouteHandler(options) {
     const {
         getDataFn,
