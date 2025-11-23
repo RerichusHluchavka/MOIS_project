@@ -22,7 +22,7 @@ app.use(express.json());
 // Routes for prisoners
 
 // GET - všichni vězni
-app.get('/prisoners', authenticateToken(['admin', 'inventory']), 
+app.get('/prisoners', authenticateToken(['admin', 'prison']), 
   createRouteHandler({
     getDataFn: () => getAllPrisoners(),
     notFoundError: 'No prisoners found',
@@ -32,7 +32,7 @@ app.get('/prisoners', authenticateToken(['admin', 'inventory']),
 );
 
 // GET - informace o vězni podle ID
-app.get('/prisoners/:id', authenticateToken(['admin', 'inventory']), 
+app.get('/prisoners/:id', authenticateToken(['admin', 'prison']), 
   createRouteHandler({
     getDataFn: (req) => getPrisonerById(req.params.id),
     notFoundError: 'Prisoner not found',
@@ -41,7 +41,7 @@ app.get('/prisoners/:id', authenticateToken(['admin', 'inventory']),
 );
 
 // POST - vytvoření nového vězně
-app.post('/prisoners', authenticateToken(['admin']), 
+app.post('/prisoners', authenticateToken(['admin', 'prison']), 
   createRouteHandler({
     getDataFn: (req) => createPrisoner(req.body),
     serverError: 'Failed to create prisoner',
@@ -52,7 +52,7 @@ app.post('/prisoners', authenticateToken(['admin']),
 );
 
 // PUT - aktualizace vězně
-app.put('/prisoners/:id', authenticateToken(['admin']),
+app.put('/prisoners/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => updatePrisoner(req.params.id, req.body),
     notFoundError: 'Prisoner not found',
@@ -62,7 +62,7 @@ app.put('/prisoners/:id', authenticateToken(['admin']),
 );
 
 // DELETE - odstranění vězně
-app.delete('/prisoners/:id', authenticateToken(['admin']),
+app.delete('/prisoners/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => deletePrisoner(req.params.id),
     notFoundError: 'Prisoner not found',
@@ -73,7 +73,7 @@ app.delete('/prisoners/:id', authenticateToken(['admin']),
 );
 
 // GET - kredit vězně
-app.get('/prisoners/:id/credit', authenticateToken(['admin', 'inventory']),
+app.get('/prisoners/:id/credit', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => getPrisonerCredit(req.params.id),
     notFoundError: 'Prisoner not found',
@@ -82,7 +82,7 @@ app.get('/prisoners/:id/credit', authenticateToken(['admin', 'inventory']),
 );
 
 // PATCH - zvýšení kreditu vězně
-app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin']),
+app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => increasePrisonerCredit(req.params.id, req.body.amount),
     notFoundError: 'Prisoner not found',
@@ -92,7 +92,7 @@ app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin']),
 );
 
 // PATCH - snížení kreditu vězně
-app.patch('/prisoners/:id/credit/decrease', authenticateToken(['admin']),
+app.patch('/prisoners/:id/credit/decrease', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => decreasePrisonerCredit(req.params.id, req.body.amount),
     notFoundError: 'Prisoner not found',
@@ -115,7 +115,7 @@ const {
 } = require('./database-cells');
 
 // GET - všechny cely
-app.get('/cells', authenticateToken(['admin', 'inventory']),
+app.get('/cells', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: () => getAllCells(),
     notFoundError: 'No cells found',
@@ -125,7 +125,7 @@ app.get('/cells', authenticateToken(['admin', 'inventory']),
 );
 
 // GET - informace o cele podle ID
-app.get('/cells/:id', authenticateToken(['admin', 'inventory']),
+app.get('/cells/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => getCellById(req.params.id),
     notFoundError: 'Cell not found',
@@ -134,7 +134,7 @@ app.get('/cells/:id', authenticateToken(['admin', 'inventory']),
 );
 
 // POST - vytvoření nové cely
-app.post('/cells', authenticateToken(['admin']),
+app.post('/cells', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => createCell(req.body),
     serverError: 'Failed to create cell',
@@ -145,7 +145,7 @@ app.post('/cells', authenticateToken(['admin']),
 );
 
 // DELETE - odstranění cely
-app.delete('/cells/:id', authenticateToken(['admin']),
+app.delete('/cells/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => deleteCell(req.params.id),
     notFoundError: 'Cell not found',
@@ -156,7 +156,7 @@ app.delete('/cells/:id', authenticateToken(['admin']),
 );
 
 // GET - všechny typy cel
-app.get('/cell-types', authenticateToken(['admin', 'inventory']),
+app.get('/cell-types', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: () => getAllCellTypes(),
     notFoundError: 'No cell types found',
@@ -166,7 +166,7 @@ app.get('/cell-types', authenticateToken(['admin', 'inventory']),
 );
 
 // GET - informace o typu cely podle ID
-app.get('/cell-types/:id', authenticateToken(['admin', 'inventory']),
+app.get('/cell-types/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => getCellTypeById(req.params.id),
     notFoundError: 'Cell type not found',
@@ -175,7 +175,7 @@ app.get('/cell-types/:id', authenticateToken(['admin', 'inventory']),
 );
 
 // POST - vytvoření nového typu cely
-app.post('/cell-types', authenticateToken(['admin']),
+app.post('/cell-types', authenticateToken(['admin' ,'prison']),
   createRouteHandler({
     getDataFn: (req) => createCellType(req.body),
     serverError: 'Failed to create cell type',
@@ -186,7 +186,7 @@ app.post('/cell-types', authenticateToken(['admin']),
 );
 
 // DELETE - odstranění typu cely
-app.delete('/cell-types/:id', authenticateToken(['admin']),
+app.delete('/cell-types/:id', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => deleteCellType(req.params.id),
     notFoundError: 'Cell type not found',
@@ -197,7 +197,7 @@ app.delete('/cell-types/:id', authenticateToken(['admin']),
 );
 
 // GET - informace o cele vězně podle ID vězně
-app.get('/prisoners/:id/cell', authenticateToken(['admin', 'inventory']),
+app.get('/prisoners/:id/cell', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => getCellByPrisonerId(req.params.id),
     notFoundError: 'Cell for prisoner not found',
@@ -215,7 +215,7 @@ const {
 } = require('./database-allergens');
 
 // GET - všechny alergeny
-app.get('/allergens', authenticateToken(['admin', 'inventory']),
+app.get('/allergens', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: () => getAllAllergens(),
     notFoundError: 'No allergens found',
@@ -225,7 +225,7 @@ app.get('/allergens', authenticateToken(['admin', 'inventory']),
 );
 
 // GET - alergeny vězně podle ID vězně
-app.get('/prisoners/:id/allergens', authenticateToken(['admin', 'inventory']),
+app.get('/prisoners/:id/allergens', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => getAllergensByPrisonerId(req.params.id),
     notFoundError: 'No allergens found for prisoner',
@@ -235,7 +235,7 @@ app.get('/prisoners/:id/allergens', authenticateToken(['admin', 'inventory']),
 );
 
 // POST - přidání alergenu vězni
-app.post('/prisoners/:id/allergens', authenticateToken(['admin']),
+app.post('/prisoners/:id/allergens', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => addAllergenToPrisoner(req.params.id, req.body.allergen_id, req.body.severity),
     serverError: 'Failed to add allergen to prisoner',  
@@ -246,7 +246,7 @@ app.post('/prisoners/:id/allergens', authenticateToken(['admin']),
 );
 
 // DELETE - odebrání alergenu vězni
-app.delete('/prisoners/:id/allergens/:allergenId', authenticateToken(['admin']),
+app.delete('/prisoners/:id/allergens/:allergenId', authenticateToken(['admin', 'prison']),
   createRouteHandler({
     getDataFn: (req) => removeAllergenFromPrisoner(req.params.id, req.params.allergenId),
     notFoundError: 'Allergen for prisoner not found',

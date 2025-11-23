@@ -1,15 +1,23 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
+const { createRouteHandler } = require('./routeHandler');
+
+
 
 const { 
-  getAllItems, 
-  getItemById, 
-  createItem, 
+  getAllItems,
+  getItemById,
+  createItem,
   updateItem,
   deleteItem,
-  increaseQuantity,
-  decreaseQuantity
-} = require('./database');
+  getAllStorages,
+  getStorageById,
+  createStorage,
+  updateStorage,
+  deleteStorage
+} = require('./database-items-storage');
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -17,242 +25,213 @@ const PORT = process.env.PORT || 3002;
 //Middleware
 app.use(express.json());
 
-// Routes
+// Routes pro items
+
+// GET - všechny itemy
+app.get('/items', authenticateToken(['admin', 'inventory', 'kitchen']), 
+  createRouteHandler({
+    getDataFn: () => getAllItems(),
+    notFoundError: 'No items found',
+    serverError: 'Failed to fetch items',
+    includeCount: true
+  })
+);
+
+// GET - informace o itemu podle ID
+app.get('/items/:id', authenticateToken(['admin', 'inventory', 'kitchen']), 
+  createRouteHandler({
+    getDataFn: (req) => getItemById(req.params.id),
+    notFoundError: 'Item not found',
+    serverError: 'Failed to fetch item'
+  })
+);
+
+// POST - vytvoření nového itemu
+app.post('/items', authenticateToken(['admin', 'inventory']), 
+  createRouteHandler({
+    getDataFn: (req) => createItem(req.body),
+    serverError: 'Failed to create item',
+    successMessage: 'Item created successfully',
+    successCode: 201,
+    skipNotFoundCheck: true
+  })
+);
+
+// PUT - aktualizace itemu
+app.put('/items/:id', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => updateItem(req.params.id, req.body),
+    notFoundError: 'Item not found',
+    serverError: 'Failed to update item',
+    successMessage: 'Item updated successfully'
+  })
+);
+
+// DELETE - smazání itemu
+app.delete('/items/:id', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => deleteItem(req.params.id),
+    notFoundError: 'Item not found',
+    serverError: 'Failed to delete item',
+    successMessage: 'Item deleted successfully',
+    skipNotFoundCheck: true
+  })
+);
+
+// Routes pro storages
+
+// GET - všechny storage
+app.get('/storages', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: () => getAllStorages(),
+    notFoundError: 'No storages found',
+    serverError: 'Failed to fetch storages',
+    includeCount: true
+  })
+);
+
+// GET - informace o storage podle ID
+app.get('/storages/:id', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => getStorageById(req.params.id),
+    notFoundError: 'Storage not found',
+    serverError: 'Failed to fetch storage'
+  })
+);
+
+// POST - vytvoření nové storage
+app.post('/storages', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => createStorage(req.body),
+    serverError: 'Failed to create storage',
+    successMessage: 'Storage created successfully',
+    successCode: 201,
+    skipNotFoundCheck: true
+  })
+);
+
+// PUT - aktualizace storage
+app.put('/storages/:id', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => updateStorage(req.params.id, req.body),
+    notFoundError: 'Storage not found',
+    serverError: 'Failed to update storage',
+    successMessage: 'Storage updated successfully'
+  })
+);
+
+// DELETE - smazání storage
+app.delete('/storages/:id', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => deleteStorage(req.params.id),
+    notFoundError: 'Storage not found',
+    serverError: 'Failed to delete storage',
+    successMessage: 'Storage deleted successfully',
+    skipNotFoundCheck: true
+  })
+);
+
+const{
+  getAllStoring,
+  getStoringByStorageId,
+  getStoringByItemId,
+  getTotalItemQuantity,
+  addStoringRecord,
+  deleteStoringRecord,
+  increaseItemVolume,
+  decreaseItemVolume
+} = require('./database-storing');
+
+// Routes pro storing
+
+// GET - všechny storing záznamy
+app.get('/storing', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: () => getAllStoring(),
+    notFoundError: 'No storing records found',
+    serverError: 'Failed to fetch storing records',
+    includeCount: true
+  })
+);
+
+// GET - storing záznamy podle storage ID
+app.get('/storing/storage/:storageId', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => getStoringByStorageId(req.params.storageId),
+    notFoundError: 'No storing records found for this storage',
+    serverError: 'Failed to fetch storing records for this storage',
+    includeCount: true
+  })
+);
+
+// GET - storing záznamy podle item ID
+app.get('/storing/item/:itemId', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => getStoringByItemId(req.params.itemId),
+    notFoundError: 'No storing records found for this item',
+    serverError: 'Failed to fetch storing records for this item',
+    includeCount: true
+  })
+);
+
+// GET - celkové množství konkrétního itemu napříč všemi storage
+app.get('/storing/item/:itemId/total', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => getTotalItemQuantity(req.params.itemId),
+    notFoundError: 'No quantity found for this item',
+    serverError: 'Failed to fetch total quantity for this item'
+  })
+);
+
+// POST - přidání nového storing záznamu
+app.post('/storing', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => addStoringRecord(req.body),
+    serverError: 'Failed to add storing record',
+    successMessage: 'Storing record added successfully',
+    successCode: 201,
+    skipNotFoundCheck: true
+  })
+);
+
+// DELETE - smazání storing záznamu
+app.delete('/storing/storage/:storageId/item/:itemId', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => deleteStoringRecord(req.params.storageId, req.params.itemId),
+    notFoundError: 'Storing record not found',
+    serverError: 'Failed to delete storing record',
+    successMessage: 'Storing record deleted successfully',
+    skipNotFoundCheck: true
+  })
+);
+
+// PATCH - zvýšení množství itemu ve storing záznamu
+app.patch('/storing/storage/:storageId/item/:itemId/increase', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => increaseItemVolume(req.params.storageId, req.params.itemId, req.body.volume),
+    notFoundError: 'Storing record not found',
+    serverError: 'Failed to increase item volume',
+    successMessage: 'Item volume increased successfully'
+  })
+);
+
+// PATCH - snížení množství itemu ve storing záznamu
+app.patch('/storing/storage/:storageId/item/:itemId/decrease', authenticateToken(['admin', 'inventory']),
+  createRouteHandler({
+    getDataFn: (req) => decreaseItemVolume(req.params.storageId, req.params.itemId, req.body.volume),
+    notFoundError: 'Storing record not found',
+    serverError: 'Failed to decrease item volume',
+    successMessage: 'Item volume decreased successfully'
+  })
+);
+
 
 app.get('/health', (req, res) => {
   res.json({ status: 'Inventory service OK' });
-});
-
-// GET - všechny položky
-app.get('/inventory', authenticateToken(['admin', 'inventory']), async (req, res) => {
-  try {
-    const items = await getAllItems();
-    res.json({
-      message: 'Inventory data accessed successfully',
-      user: req.user,
-      data: items
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch inventory items'
-    });
-  }
-});
-
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`✅ Inventory service running on port ${PORT}`);
-});
-/*
-// GET - položka podle ID
-app.get('/inventory/:id', async (req, res) => {
-  try {
-    const item = await getItemById(req.params.id);
-    
-    if (!item) {
-      return res.status(404).json({
-        success: false,
-        error: 'Inventory item not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: item
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch inventory item'
-    });
-  }
-});
-
-// POST - vytvoř novou položku
-app.post('/inventory', async (req, res) => {
-  try {
-    const { name, quantity } = req.body;
-    
-    // Validace povinných polí
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required field: name'
-      });
-    }
-    
-    const newItem = await createItem({
-      name,
-      quantity: quantity || 0
-    });
-    
-    res.status(201).json({
-      success: true,
-      data: newItem,
-      message: 'Inventory item created successfully'
-    });
-  } catch (error) {
-    console.error('Create item error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create inventory item'
-    });
-  }
-});
-
-// PUT - aktualizuj položku
-app.put('/inventory/:id', async (req, res) => {
-  try {
-    const { name, quantity } = req.body;
-    
-    const updatedItem = await updateItem(req.params.id, {
-      name,
-      quantity
-    });
-    
-    if (!updatedItem) {
-      return res.status(404).json({
-        success: false,
-        error: 'Inventory item not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: updatedItem,
-      message: 'Inventory item updated successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update inventory item'
-    });
-  }
-});
-
-// DELETE - smaž položku
-app.delete('/inventory/:id', async (req, res) => {
-  try {
-    const deletedItem = await deleteItem(req.params.id);
-    
-    if (!deletedItem) {
-      return res.status(404).json({
-        success: false,
-        error: 'Inventory item not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: deletedItem,
-      message: 'Inventory item deleted successfully'
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete inventory item'
-    });
-  }
-});
-
-// PATCH - zvýš množství
-app.patch('/inventory/:id/increase', async (req, res) => {
-  try {
-    const { amount } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Amount must be a positive number'
-      });
-    }
-    
-    const updatedItem = await increaseQuantity(req.params.id, amount);
-    
-    if (!updatedItem) {
-      return res.status(404).json({
-        success: false,
-        error: 'Inventory item not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: updatedItem,
-      message: `Quantity increased by ${amount}`
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to increase quantity'
-    });
-  }
-});
-
-// PATCH - sniž množství
-app.patch('/inventory/:id/decrease', async (req, res) => {
-  try {
-    const { amount } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Amount must be a positive number'
-      });
-    }
-    
-    const updatedItem = await decreaseQuantity(req.params.id, amount);
-    
-    if (!updatedItem) {
-      return res.status(404).json({
-        success: false,
-        error: 'Inventory item not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: updatedItem,
-      message: `Quantity decreased by ${amount}`
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to decrease quantity'
-    });
-  }
-});
-
-// Public health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    service: 'inventory-service',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Inventory Service is working!',
-    endpoints: {
-      'GET /health': 'Service health check',
-      'GET /inventory': 'Get all inventory items',
-      'GET /inventory/:id': 'Get specific item',
-      'POST /inventory': 'Create new item',
-      'PUT /inventory/:id': 'Update item',
-      'DELETE /inventory/:id': 'Delete item',
-      'PATCH /inventory/:id/increase': 'Increase quantity',
-      'PATCH /inventory/:id/decrease': 'Decrease quantity'
-    }
-  });
 });
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Inventory service running on http://0.0.0.0:${PORT}`);
   console.log(`📊 PostgreSQL: inventory_db`);
-});*/
+});
