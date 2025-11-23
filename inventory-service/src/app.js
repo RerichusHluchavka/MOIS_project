@@ -1,6 +1,5 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
-const router = express.Router();
 
 const { 
   getAllItems, 
@@ -41,11 +40,6 @@ app.get('/inventory', authenticateToken(['admin', 'inventory']), async (req, res
   }
 });
 
-router.get('/test', (req, res) => {
-  res.json({ message: 'Inventory service is working!' });
-});
-
-module.exports = router;
 
 // Start server
 app.listen(PORT, () => {
