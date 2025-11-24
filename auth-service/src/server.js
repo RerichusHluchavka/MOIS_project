@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const { Pool } = require('pg');
+const { authenticateToken } = require('../auth-middleware');
 
 const app = express();
 app.use(express.json());
@@ -123,6 +124,108 @@ app.post('/auth/verify', (req, res) => {
     res.status(401).json({ valid: false, error: 'Invalid token' });
   }
 });
+
+// Create new user - only admin can do it
+app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+
+    // Validate input
+    if (!username || !password || !role) {
+      return res.status(400).json({ 
+        error: 'Username, password, and role are required' 
+      });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'kitchen', 'inventory', 'prison'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ 
+        error: 'Invalid role. Must be one of: admin, kitchen, inventory, prison' 
+      });
+    }
+
+    // Check if username already exists
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
+    const result = await pool.query(
+      'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role',
+      [username, hashedPassword, role]
+    );
+
+    const newUser = result.rows[0];
+    
+    res.status(201).json({
+      message: 'User created successfully',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        role: newUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all users - only admin can do it
+app.get('/auth/users', authenticateToken(['admin']), async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, role FROM users ORDER BY id'
+    );
+
+    res.json({
+      users: result.rows
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete user - only admin can do it
+app.delete('/auth/users/:id', authenticateToken(['admin']), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    // Prevent admin from deleting themselves
+    if (userId === req.user.userId) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    // Check if user exists
+    const userCheck = await pool.query(
+      'SELECT id FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Delete user
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
