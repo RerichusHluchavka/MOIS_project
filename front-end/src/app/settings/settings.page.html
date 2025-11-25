@@ -1,0 +1,156 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Appearance</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <!-- Follow system theme -->
+        <ion-item>
+          <ion-icon slot="start" name="desktop-outline"></ion-icon>
+          <ion-label>
+            <h2>Follow system theme</h2>
+            <p>Automatically match your device setting</p>
+          </ion-label>
+          <ion-toggle
+            [(ngModel)]="followSystem"
+            (ionChange)="onSystemToggle(followSystem)">
+          </ion-toggle>
+        </ion-item>
+  
+        <!-- Manual dark mode toggle -->
+        <ion-item>
+          <ion-icon slot="start" name="moon-outline"></ion-icon>
+          <ion-label>
+            <h2>Dark mode</h2>
+            <p>Switch between light and dark appearance</p>
+          </ion-label>
+          <ion-toggle
+            [(ngModel)]="darkMode"
+            (ionChange)="onToggleTheme(darkMode)"
+            [disabled]="followSystem">
+          </ion-toggle>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+  
+
+  <!-- User Management -->
+  <ion-card
+    [class.disabled]="!hasAdminPermission"
+    [attr.aria-disabled]="!hasAdminPermission"
+  >
+    <ion-card-header>
+      <ion-card-title>User Management</ion-card-title>
+      <ion-note color="medium" *ngIf="!hasAdminPermission">
+        You don't have permission to manage users.
+      </ion-note>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-button
+        expand="block"
+        (click)="openAddUserModal()"
+        [disabled]="!hasAdminPermission">
+        Add user
+      </ion-button>
+
+      <!-- Users table -->
+      <ion-grid>
+        <ion-row class="ion-hide-sm-down" style="font-weight:600;">
+          <ion-col size="4">Name</ion-col>
+          <ion-col size="4">Users management</ion-col>
+          <ion-col size="4">Actions</ion-col>
+        </ion-row>
+
+        <ion-row *ngFor="let u of users">
+          <ion-col size="12" size-sm="4">
+            <ion-label>{{ u.name }}</ion-label>
+          </ion-col>
+
+          <ion-col size="12" size-sm="4">
+            <ion-item lines="none">
+              <ion-toggle
+                [(ngModel)]="u.canAddUsers"
+                (ionChange)="onToggleUserPermission(u)"
+                [disabled]="!hasAdminPermission">
+              </ion-toggle>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12" size-sm="4">
+            <ion-button
+              color="danger"
+              fill="solid"
+              size="small"
+              (click)="deleteUser(u)"
+              [disabled]="!hasAdminPermission">
+              Delete
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Add User Modal -->
+  <ion-modal [isOpen]="addUserOpen" (didDismiss)="addUserOpen = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add user</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="addUserOpen = false">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Username</ion-label>
+            <ion-input
+              placeholder="Enter username"
+              [(ngModel)]="newUser.name"
+              [disabled]="!hasAdminPermission">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Password</ion-label>
+            <ion-input
+              type="password"
+              placeholder="Enter password"
+              [(ngModel)]="newUser.password"
+              [disabled]="!hasAdminPermission">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Administration</ion-label>
+            <ion-toggle
+              [(ngModel)]="newUser.canAddUsers"
+              [disabled]="!hasAdminPermission">
+            </ion-toggle>
+          </ion-item>
+        </ion-list>
+
+        <ion-button
+          expand="block"
+          (click)="confirmAddUser()"
+          [disabled]="!hasAdminPermission">
+          Save
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

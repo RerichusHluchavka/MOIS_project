@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Dispensing</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Meal Dispensing</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">Enter consumer number</ion-label>
+        <ion-input
+          type="number"
+          placeholder="e.g. 12345"
+          [(ngModel)]="consumerNumber">
+        </ion-input>
+      </ion-item>
+
+      <ion-button expand="block" class="ion-margin-top" (click)="checkConsumer()">
+        Check
+      </ion-button>
+
+      <ion-text color="success" *ngIf="status === 'issued'">
+        <h2 class="ion-text-center ion-margin-top">ISSUED ✅</h2>
+      </ion-text>
+
+      <ion-text color="danger" *ngIf="status === 'denied'">
+        <h2 class="ion-text-center ion-margin-top">NOT ISSUED</h2>
+        <p class="ion-text-center">{{ reason }}</p>
+      </ion-text>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

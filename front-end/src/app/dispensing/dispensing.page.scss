@@ -1,0 +1,17 @@
+ion-card {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+h2 {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+ion-text[color="success"] h2 {
+    color: var(--ion-color-success);
+}
+
+ion-text[color="danger"] h2 {
+    color: var(--ion-color-danger);
+}

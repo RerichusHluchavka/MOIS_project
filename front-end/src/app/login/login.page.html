@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Sign in</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <form action="#" method="post" novalidate>
+    <ion-list lines="full">
+      <ion-item>
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input name="email" type="email" autocomplete="email" inputmode="email" placeholder="e.g. jane@company.com"
+          required>
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Password</ion-label>
+        <ion-input name="password" type="password" autocomplete="current-password" minlength="6" placeholder="••••••••"
+          required>
+        </ion-input>
+      </ion-item>
+    </ion-list>
+
+
+    <ion-button expand="block" class="ion-margin-top" type="submit">
+      Sign in
+    </ion-button>
+
+  </form>
+</ion-content>

@@ -1,0 +1,23 @@
+ion-card {
+  max-width: 600px;
+  margin: 0 auto 1rem;
+}
+
+.table-header {
+  background: var(--ion-color-light);
+  font-weight: 600;
+  border-bottom: 1px solid var(--ion-color-medium);
+}
+
+ion-row {
+  align-items: center;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+ion-col {
+  text-align: left;
+}
+
+ion-button {
+  --border-radius: 8px;
+}
