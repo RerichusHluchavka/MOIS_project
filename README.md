@@ -35,3 +35,16 @@ Konkrétní příklad:
 
 - komunikace mezi mikroslužbami (bude asi pomocí REST)
 - připojení něčeho externího (asi platební brána)
+
+## API gateway
+
+Přístup k jednotlivým servisám zajišťuje API gateway 
+ `http://localhost/api/`
+
+ K jednotlivím mikroservisám se pak lze dostat pomocí přídání názvu mikroservisy (auth, prison, inventory, kitchen)
+
+ Příklady dotazů:
+- `http://localhost/api/auth/login`
+- `http://localhost/api/kitchen/ingredients`
+- `http://localhost/api/inventory/storing`
+- `http://localhost/api/prison/prisoners`
