@@ -18,6 +18,31 @@ pool.on('error', (err) => {
   console.error('PostgreSQL connection error:', err);
 });
 
+async function executeInTransaction(callback) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Spustí callback funkci a předá jí klienta.
+    // Zde se provede vaše specifická logika (např. UPDATE, SELECT).
+    const result = await callback(client);
+
+    await client.query('COMMIT');
+    return result;
+
+  } catch (error) {
+    // Pokud dojde k chybě v callbacku nebo při COMMIT, provedeme ROLLBACK.
+    await client.query('ROLLBACK');
+    console.error('Database transaction rolled back due to error:', error.message);
+    throw error; // Znovu vyhodit chybu, aby se o ní dozvěděla volající funkce
+
+  } finally {
+    // Klient je vždy uvolněn zpět do poolu.
+    client.release();
+  }
+}
+
 /*
 storing table schema:
 - stoagege_id integer foreign key references storage(storage_id),
@@ -33,10 +58,10 @@ async function getAllStoring() {
   try {
     const result = await pool.query('SELECT * FROM storing ORDER BY storage_id, item_id;');
     return result.rows;
-    } catch (error) {
+  } catch (error) {
     console.error('Error getting storing records:', error);
     throw error;
-    }
+  }
 }
 
 // Získání všech storing záznamů pro konkrétní storage ID
@@ -118,45 +143,51 @@ async function deleteStoringRecord(storageId, itemId) {
 
 // Navýšení množství itemu v konkrétní storage
 async function increaseItemVolume(storageId, itemId, amount) {
-  try {
-    const result = await pool.query(
-      `UPDATE storing
+  const updateRow = await executeInTransaction(async (client) => {
+
+      const result = await client.query(
+        `UPDATE storing
         SET volume = volume + $1
         WHERE storage_id = $2 AND item_id = $3
+        AND $1 >= 0
         RETURNING *`,
-      [amount, storageId, itemId]
-    );
-    return result.rows[0];
-  } catch (error) {
-    console.error('Error increasing item volume:', error);
-    throw error;
-  }
+        [amount, storageId, itemId]
+      );
+      return result.rows[0];
+
+  })
+  return updateRow;
 }
 
 // Odečtení množství itemu v konkrétní storage
 async function decreaseItemVolume(storageId, itemId, amount) {
-  try {
-    const result = await pool.query(
+  const updateRow = await executeInTransaction(async (client) => {
+
+    const result = await client.query(
       `UPDATE storing
         SET volume = volume - $1
         WHERE storage_id = $2 AND item_id = $3
+        AND volume >= $1
         RETURNING *`,
       [amount, storageId, itemId]
     );
+
+    if (result.rowCount === 0) {
+      throw new Error('Insufficient stock or item not found.');
+    }
+
     return result.rows[0];
-  } catch (error) {
-    console.error('Error decreasing item volume:', error);
-    throw error;
-  }
+  })
+  return updateRow;
 }
 
 module.exports = {
-    getAllStoring,
-    getStoringByStorageId,
-    getStoringByItemId,
-    getTotalItemQuantity,
-    addStoringRecord,
-    deleteStoringRecord,
-    increaseItemVolume,
-    decreaseItemVolume
+  getAllStoring,
+  getStoringByStorageId,
+  getStoringByItemId,
+  getTotalItemQuantity,
+  addStoringRecord,
+  deleteStoringRecord,
+  increaseItemVolume,
+  decreaseItemVolume
 };

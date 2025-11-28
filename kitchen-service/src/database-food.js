@@ -21,6 +21,31 @@ pool.on('error', (err) => {
   console.error(' PostgreSQL connection error:', err);
 });
 
+async function executeInTransaction(callback) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Spustí callback funkci a předá jí klienta.
+    // Zde se provede vaše specifická logika (např. UPDATE, SELECT).
+    const result = await callback(client);
+
+    await client.query('COMMIT');
+    return result;
+
+  } catch (error) {
+    // Pokud dojde k chybě v callbacku nebo při COMMIT, provedeme ROLLBACK.
+    await client.query('ROLLBACK');
+    console.error('Database transaction rolled back due to error:', error.message);
+    throw error; // Znovu vyhodit chybu, aby se o ní dozvěděla volající funkce
+
+  } finally {
+    // Klient je vždy uvolněn zpět do poolu.
+    client.release();
+  }
+}
+
 /*
 food table schema:
 - food_id SERIAL PRIMARY KEY,
@@ -34,18 +59,18 @@ async function getAllFood() {
   try {
     const result = await pool.query('SELECT * FROM food ORDER BY food_id;');
     return result.rows;
-    } catch (error) {
+  } catch (error) {
     console.error('Error getting food:', error);
     throw error;
-    }
+  }
 }
 
 // Získání jídla podle ID
 async function getFoodById(foodId) {
   try {
     const result = await pool.query(
-        'SELECT * FROM food WHERE food_id = $1;',
-        [foodId]
+      'SELECT * FROM food WHERE food_id = $1;',
+      [foodId]
     );
     return result.rows[0];
   } catch (error) {
@@ -73,8 +98,8 @@ async function createFood(foodData) {
 async function deleteFood(foodId) {
   try {
     const result = await pool.query(
-        'DELETE FROM food WHERE food_id = $1 RETURNING *;',
-        [foodId]
+      'DELETE FROM food WHERE food_id = $1 RETURNING *;',
+      [foodId]
     );
     return result.rows[0];
   } catch (error) {
@@ -97,10 +122,10 @@ async function getTodayMenu() {
   try {
     const result = await pool.query('SELECT * FROM today_menu ORDER BY food_id;');
     return result.rows;
-    } catch (error) {
+  } catch (error) {
     console.error('Error getting today menu:', error);
     throw error;
-    }
+  }
 }
 
 // Přidání jídla do dnešního menu
@@ -115,18 +140,18 @@ async function addFoodToTodayMenu(menuData) {
     );
     return result.rows[0];
   }
-    catch (error) {
+  catch (error) {
     console.error('Error adding food to today menu:', error);
     throw error;
-    }
+  }
 }
 
 // Odebrání jídla z dnešního menu
 async function removeFoodFromTodayMenu(foodId) {
-    try {
+  try {
     const result = await pool.query(
-        `DELETE FROM today_menu WHERE food_id = $1 RETURNING *;`,
-        [foodId]
+      `DELETE FROM today_menu WHERE food_id = $1 RETURNING *;`,
+      [foodId]
     );
     return result.rows[0];
   } catch (error) {
@@ -138,7 +163,7 @@ async function removeFoodFromTodayMenu(foodId) {
 //Aktualizace ceny jídla v dnešním menu
 async function updateTodayMenuFoodCost(foodId, newCost) {
   try {
-    const result = await pool.query(  
+    const result = await pool.query(
       `UPDATE today_menu
         SET cost = $1
         WHERE food_id = $2
@@ -154,8 +179,9 @@ async function updateTodayMenuFoodCost(foodId, newCost) {
 
 //Odečtení porcí jídla v dnešním menu
 async function decreaseTodayMenuFoodPortions(foodId, amount) {
-  try {
-    const result = await pool.query(
+  const updateRow = await executeInTransaction(async (client) => {
+
+    const result = await client.query(
       `UPDATE today_menu
         SET portions_available = portions_available - $1
         WHERE food_id = $2
@@ -163,10 +189,9 @@ async function decreaseTodayMenuFoodPortions(foodId, amount) {
       [amount, foodId]
     );
     return result.rows[0];
-  } catch (error) {
-    console.error('Error decreasing food portions in today menu:', error);
-    throw error;
-  }
+
+  })
+  return updateRow;
 }
 
 //Navýšení porcí jídla v dnešním menu
@@ -190,7 +215,7 @@ async function increaseTodayMenuFoodPortions(foodId, amount) {
 async function deleteAllTodayMenu() {
   try {
     const result = await pool.query(
-        'DELETE FROM today_menu RETURNING *;'
+      'DELETE FROM today_menu RETURNING *;'
     );
     return result.rows;
   } catch (error) {
