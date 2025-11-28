@@ -139,7 +139,8 @@ const{
   addStoringRecord,
   deleteStoringRecord,
   increaseItemVolume,
-  decreaseItemVolume
+  decreaseItemVolume,
+  decreaseInventoryAcrossStorages
 } = require('./database-storing');
 
 // Routes pro storing
@@ -175,7 +176,7 @@ app.get('/storing/item/:itemId', authenticateToken(['admin', 'inventory']),
 );
 
 // GET - celkové množství konkrétního itemu napříč všemi storage
-app.get('/storing/item/:itemId/total', authenticateToken(['admin', 'inventory']),
+app.get('/storing/item/:itemId/total', authenticateToken(['admin', 'inventory', 'kitchen']),
   createRouteHandler({
     getDataFn: (req) => getTotalItemQuantity(req.params.itemId),
     notFoundError: 'No quantity found for this item',
@@ -225,6 +226,17 @@ app.patch('/storing/storage/:storageId/item/:itemId/decrease', authenticateToken
   })
 );
 
+// PATCH - snížení množství itemu postupne ze vsech storing záznamu
+app.patch('/storing/storage/item/:itemId/decreaseFromAll', authenticateToken(['admin', 'inventory', 'kitchen']),
+  createRouteHandler({
+    getDataFn: (req) => decreaseInventoryAcrossStorages(req.params.itemId, req.body.volume),
+    notFoundError: 'Storing record not found',
+    serverError: 'Failed to decrease item volume',
+    successMessage: 'Item volume decreased successfully'
+  })
+);
+
+//GET - získání 
 
 app.get('/health', (req, res) => {
   res.json({ status: 'Inventory service OK' });

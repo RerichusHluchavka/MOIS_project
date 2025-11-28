@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
-const { createRouteHandler } = require('./routeHandler');
+const { createRouteHandler, extractTokenFromRequest } = require('./routeHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -18,7 +18,6 @@ const {
   removeFoodFromTodayMenu,
   updateTodayMenuFoodCost,
   decreaseTodayMenuFoodPortions,
-  increaseTodayMenuFoodPortions,
   deleteAllTodayMenu
 } = require('./database-food');
 
@@ -80,7 +79,10 @@ app.get('/today-menu', authenticateToken(['admin', 'kitchen']),
 // POST - přidání jídla do dnešního menu
 app.post('/today-menu', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
-    getDataFn: (req) => addFoodToTodayMenu(req.body),
+    getDataFn: async (req) => {
+      const userToken = extractTokenFromRequest(req);
+      return await addFoodToTodayMenu(req.body, userToken)
+    },
     serverError: 'Failed to add food to today\'s menu',
     successMessage: 'Food added to today\'s menu successfully',
     successCode: 201,
@@ -119,16 +121,6 @@ app.patch('/today-menu/:foodId/decrease-portions', authenticateToken(['admin', '
   })
 );
 
-// PATCH - zvýšení počtu porcí jídla v dnešním menu
-app.patch('/today-menu/:foodId/increase-portions', authenticateToken(['admin', 'kitchen']),
-  createRouteHandler({
-    getDataFn: (req) => increaseTodayMenuFoodPortions(req.params.foodId, req.body),
-    notFoundError: 'Food item not found in today\'s menu',
-    serverError: 'Failed to increase food portions in today\'s menu',
-    successMessage: 'Food portions increased successfully'
-  })
-);
-
 // DELETE - smazání celého dnešního menu
 app.delete('/today-menu', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
@@ -139,7 +131,7 @@ app.delete('/today-menu', authenticateToken(['admin', 'kitchen']),
   })
 );
 
-const{
+const {
   getAllIngredients,
   getIngredientById,
   createIngredient,
@@ -246,15 +238,15 @@ app.put('/food/:foodId/ingredients/:ingredientId/unit', authenticateToken(['admi
   })
 );
 
-const{
-getAllAllergens,
-getAllergenById,
-createAllergen,
-deleteAllergenById,
-getAllergensByIngredientId,
-addAllergenToIngredient,
-removeAllergenFromIngredient,
-getIngredientsByAllergenId
+const {
+  getAllAllergens,
+  getAllergenById,
+  createAllergen,
+  deleteAllergenById,
+  getAllergensByIngredientId,
+  addAllergenToIngredient,
+  removeAllergenFromIngredient,
+  getIngredientsByAllergenId
 } = require('./database-allergens');
 
 // Routes for allergens
@@ -346,8 +338,8 @@ app.get('/allergens/:allergenId/ingredients', authenticateToken(['admin', 'kitch
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     service: 'prisoner-service',
     timestamp: new Date().toISOString()
   });
