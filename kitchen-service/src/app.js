@@ -246,7 +246,8 @@ const {
   getAllergensByIngredientId,
   addAllergenToIngredient,
   removeAllergenFromIngredient,
-  getIngredientsByAllergenId
+  getIngredientsByAllergenId,
+  isPrisonerAllergicToFood
 } = require('./database-allergens');
 
 // Routes for allergens
@@ -303,9 +304,9 @@ app.get('/ingredients/:ingredientId/allergens', authenticateToken(['admin', 'kit
 );
 
 // POST - přidání alergenu do ingredience
-app.post('/ingredients/:ingredientId/allergens', authenticateToken(['admin', 'kitchen']),
+app.post('/ingredients/:ingredientId/allergens/:allergenId', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
-    getDataFn: (req) => addAllergenToIngredient(req.params.ingredientId, req.body),
+    getDataFn: (req) => addAllergenToIngredient(req.params.ingredientId, req.params.allergenId),
     serverError: 'Failed to add allergen to ingredient',
     successMessage: 'Allergen added to ingredient successfully',
     successCode: 201,
@@ -334,6 +335,31 @@ app.get('/allergens/:allergenId/ingredients', authenticateToken(['admin', 'kitch
   })
 );
 
+// GET - allergeny na ktere je vězen v jdíle allergicky
+app.get('/food/:foodId/prisoner/:prisonerId', authenticateToken(['admin', 'kitchen', 'prison']),
+  createRouteHandler({
+    getDataFn: async (req) =>{
+      const userToken = extractTokenFromRequest(req);
+      return await isPrisonerAllergicToFood(req.params.foodId, req.params.prisonerId,userToken)},
+    notFoundError: 'No allergen found for this food',
+    serverError: 'Failed to fetch allergens for prisoner',
+    includeCount: true,
+    customResponse: true
+  })
+);
+/*
+pp.post('/today-menu', authenticateToken(['admin', 'kitchen']),
+  createRouteHandler({
+    getDataFn: async (req) => {
+      const userToken = extractTokenFromRequest(req);
+      return await addFoodToTodayMenu(req.body, userToken)
+    },
+    serverError: 'Failed to add food to today\'s menu',
+    successMessage: 'Food added to today\'s menu successfully',
+    successCode: 201,
+    skipNotFoundCheck: true
+  })
+);*/
 
 
 // Health check

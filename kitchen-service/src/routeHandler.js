@@ -7,7 +7,9 @@ function createRouteHandler(options) {
         transformData = null,
         includeCount = false,
         successMessage = null,
-        skipNotFoundCheck = false
+        skipNotFoundCheck = false,
+        customResponse = false
+
     } = options;
 
 
@@ -30,12 +32,22 @@ function createRouteHandler(options) {
                 responseData = transformData(data);
             }
 
-            const response = {
-                success: true,
-                ...(responseData && { data: responseData }),
-                ...(successMessage && { message: successMessage })
-            };
-
+            let response;
+            if (customResponse && data === 0) {
+                console.log(data);
+                response = {
+                    success: true,
+                    data: 0,
+                    message: "Nemá žádné allergeny",
+                    count:0
+                };
+            } else {
+                response = {
+                    success: true,
+                    ...(responseData && { data: responseData }),
+                    ...(successMessage && { message: successMessage })
+                };
+            }
 
 
             if (includeCount && Array.isArray(responseData)) {
