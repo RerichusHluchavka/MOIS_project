@@ -1,8 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
 const { createRouteHandler } = require('./routeHandler');
-
-
+const cors = require('cors');
 
 const { 
   getAllItems,
@@ -22,10 +21,16 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-//Middleware
+// Middleware
 app.use(express.json());
 
+app.use(cors({
+  origin: 'http://localhost:8100',
+  credentials: true
+}));
+
 // Routes pro items
+
 
 // GET - všechny itemy
 app.get('/items', authenticateToken(['admin', 'inventory', 'kitchen']), 
