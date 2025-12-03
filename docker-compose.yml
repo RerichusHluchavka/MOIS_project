@@ -13,6 +13,7 @@ services:
       - prisoner-service
       - inventory-service
       - kitchen-service
+      - payment-service
 
   # Authentication Service Database
   auth-db:
@@ -147,6 +148,20 @@ services:
     networks:
       - prison-net
 
+  payment-service:
+      build: ./payment-service
+      container_name: payment-service
+      # Port nemusíte vystavovat ven, pokud ho používáte jen interně
+      expose: 
+        - "3005" 
+      environment:
+        STRIPE_SECRET_KEY: ${TEST_STRIPE_SECRET_KEY} 
+        STRIPE_WEBHOOK_SECRET: ${TEST_STRIPE_WEBHOOK_SECRET}
+      networks:
+        - prison-net
+      volumes:
+        - ./payment-service:/app  
+        - /app/node_modules
 
 volumes:
   auth_data:
