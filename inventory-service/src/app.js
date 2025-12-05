@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
 const { createRouteHandler } = require('./routeHandler');
-
+const cors = require('cors');
 
 
 const { 
@@ -24,6 +24,7 @@ const PORT = process.env.PORT || 3002;
 
 //Middleware
 app.use(express.json());
+app.use(cors());
 
 // Routes pro items
 

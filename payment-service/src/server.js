@@ -2,12 +2,12 @@ const express = require('express');
 const app = express();
 const port = 3005;
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+
+app.use(cors());
 
 // Načtení klíče z proměnné prostředí (důležité pro bezpečnost)
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-// Nastavení middleware
-//app.use(express.json()); // Pro zpracování JSON požadavků
 
 // Endpoint pro vytvoření platebního záměru
 app.post('/create-payment', express.json(), async (req, res) => {

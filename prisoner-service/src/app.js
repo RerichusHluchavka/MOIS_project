@@ -1,6 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
 const { createRouteHandler } = require('./routeHandler');
+const cors = require('cors');
 
 const { 
   getPrisonerById,
@@ -18,6 +19,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // Routes for prisoners
 

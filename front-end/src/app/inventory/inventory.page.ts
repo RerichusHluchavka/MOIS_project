@@ -63,7 +63,7 @@ export class InventoryPage implements OnInit {
     quantity: 0
   };
 
-  private readonly API_URL = 'http://localhost:3002';
+  private readonly API_URL = 'http://localhost/api/inventory';
 
   constructor(private http: HttpClient) {}
 

@@ -1,12 +1,14 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
 const { createRouteHandler, extractTokenFromRequest } = require('./routeHandler');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 const {
   getAllFood,
