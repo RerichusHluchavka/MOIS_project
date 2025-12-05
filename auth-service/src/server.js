@@ -58,7 +58,7 @@ async function initializeDatabase() {
 }
 
 // Login endpoint
-app.post('/auth/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -110,7 +110,7 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // Token verification endpoint
-app.post('/auth/verify', (req, res) => {
+app.post('/verify', (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     
@@ -126,7 +126,7 @@ app.post('/auth/verify', (req, res) => {
 });
 
 // Create new user - only admin can do it
-app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
+app.post('/users', authenticateToken(['admin']), async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
@@ -181,7 +181,7 @@ app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
 });
 
 // Get all users - only admin can do it
-app.get('/auth/users', authenticateToken(['admin']), async (req, res) => {
+app.get('/users', authenticateToken(['admin']), async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, username, role FROM users ORDER BY id'
@@ -197,7 +197,7 @@ app.get('/auth/users', authenticateToken(['admin']), async (req, res) => {
 });
 
 // Delete user - only admin can do it
-app.delete('/auth/users/:id', authenticateToken(['admin']), async (req, res) => {
+app.delete('/users/:id', authenticateToken(['admin']), async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
-const { createRouteHandler } = require('./routeHandler');
+const { createRouteHandler, extractTokenFromRequest } = require('./routeHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -18,7 +18,6 @@ const {
   removeFoodFromTodayMenu,
   updateTodayMenuFoodCost,
   decreaseTodayMenuFoodPortions,
-  increaseTodayMenuFoodPortions,
   deleteAllTodayMenu
 } = require('./database-food');
 
@@ -80,7 +79,10 @@ app.get('/today-menu', authenticateToken(['admin', 'kitchen']),
 // POST - přidání jídla do dnešního menu
 app.post('/today-menu', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
-    getDataFn: (req) => addFoodToTodayMenu(req.body),
+    getDataFn: async (req) => {
+      const userToken = extractTokenFromRequest(req);
+      return await addFoodToTodayMenu(req.body, userToken)
+    },
     serverError: 'Failed to add food to today\'s menu',
     successMessage: 'Food added to today\'s menu successfully',
     successCode: 201,
@@ -119,16 +121,6 @@ app.patch('/today-menu/:foodId/decrease-portions', authenticateToken(['admin', '
   })
 );
 
-// PATCH - zvýšení počtu porcí jídla v dnešním menu
-app.patch('/today-menu/:foodId/increase-portions', authenticateToken(['admin', 'kitchen']),
-  createRouteHandler({
-    getDataFn: (req) => increaseTodayMenuFoodPortions(req.params.foodId, req.body),
-    notFoundError: 'Food item not found in today\'s menu',
-    serverError: 'Failed to increase food portions in today\'s menu',
-    successMessage: 'Food portions increased successfully'
-  })
-);
-
 // DELETE - smazání celého dnešního menu
 app.delete('/today-menu', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
@@ -139,7 +131,7 @@ app.delete('/today-menu', authenticateToken(['admin', 'kitchen']),
   })
 );
 
-const{
+const {
   getAllIngredients,
   getIngredientById,
   createIngredient,
@@ -246,15 +238,16 @@ app.put('/food/:foodId/ingredients/:ingredientId/unit', authenticateToken(['admi
   })
 );
 
-const{
-getAllAllergens,
-getAllergenById,
-createAllergen,
-deleteAllergenById,
-getAllergensByIngredientId,
-addAllergenToIngredient,
-removeAllergenFromIngredient,
-getIngredientsByAllergenId
+const {
+  getAllAllergens,
+  getAllergenById,
+  createAllergen,
+  deleteAllergenById,
+  getAllergensByIngredientId,
+  addAllergenToIngredient,
+  removeAllergenFromIngredient,
+  getIngredientsByAllergenId,
+  isPrisonerAllergicToFood
 } = require('./database-allergens');
 
 // Routes for allergens
@@ -311,9 +304,9 @@ app.get('/ingredients/:ingredientId/allergens', authenticateToken(['admin', 'kit
 );
 
 // POST - přidání alergenu do ingredience
-app.post('/ingredients/:ingredientId/allergens', authenticateToken(['admin', 'kitchen']),
+app.post('/ingredients/:ingredientId/allergens/:allergenId', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({
-    getDataFn: (req) => addAllergenToIngredient(req.params.ingredientId, req.body),
+    getDataFn: (req) => addAllergenToIngredient(req.params.ingredientId, req.params.allergenId),
     serverError: 'Failed to add allergen to ingredient',
     successMessage: 'Allergen added to ingredient successfully',
     successCode: 201,
@@ -342,12 +335,37 @@ app.get('/allergens/:allergenId/ingredients', authenticateToken(['admin', 'kitch
   })
 );
 
+// GET - allergeny na ktere je vězen v jdíle allergicky
+app.get('/food/:foodId/prisoner/:prisonerId', authenticateToken(['admin', 'kitchen', 'prison']),
+  createRouteHandler({
+    getDataFn: async (req) =>{
+      const userToken = extractTokenFromRequest(req);
+      return await isPrisonerAllergicToFood(req.params.foodId, req.params.prisonerId,userToken)},
+    notFoundError: 'No allergen found for this food',
+    serverError: 'Failed to fetch allergens for prisoner',
+    includeCount: true,
+    customResponse: true
+  })
+);
+/*
+pp.post('/today-menu', authenticateToken(['admin', 'kitchen']),
+  createRouteHandler({
+    getDataFn: async (req) => {
+      const userToken = extractTokenFromRequest(req);
+      return await addFoodToTodayMenu(req.body, userToken)
+    },
+    serverError: 'Failed to add food to today\'s menu',
+    successMessage: 'Food added to today\'s menu successfully',
+    successCode: 201,
+    skipNotFoundCheck: true
+  })
+);*/
 
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     service: 'prisoner-service',
     timestamp: new Date().toISOString()
   });

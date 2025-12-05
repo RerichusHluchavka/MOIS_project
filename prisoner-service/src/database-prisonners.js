@@ -21,6 +21,32 @@ pool.on('error', (err) => {
   console.error(' PostgreSQL connection error:', err);
 });
 
+async function executeInTransaction(callback) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Spustí callback funkci a předá jí klienta.
+    // Zde se provede vaše specifická logika (např. UPDATE, SELECT).
+    const result = await callback(client);
+
+    await client.query('COMMIT');
+    return result;
+
+  } catch (error) {
+    // Pokud dojde k chybě v callbacku nebo při COMMIT, provedeme ROLLBACK.
+    await client.query('ROLLBACK');
+    console.error('Database transaction rolled back due to error:', error.message);
+    throw error; // Znovu vyhodit chybu, aby se o ní dozvěděla volající funkce
+
+  } finally {
+    // Klient je vždy uvolněn zpět do poolu.
+    client.release();
+  }
+}
+
+
 /*
 prisoners table schema:
 - prisoner_id SERIAL PRIMARY KEY,
@@ -80,21 +106,21 @@ async function createPrisoner(prisonerData) {
 // Aktualizace vězně
 async function updatePrisoner(id, prisonerData) {
   const { first_name, last_name, credits, cell_id, entry_date, release_date, danger_level, religion } = prisonerData;
-  
-  try {
+  const updateRow = await executeInTransaction(async (client) => {
+
     // First, get current values for fields that aren't provided
-    const current = await pool.query(
-      'SELECT * FROM prisoners WHERE prisoner_id = $1', 
+    const current = await client.query(
+      'SELECT * FROM prisoners WHERE prisoner_id = $1',
       [id]
     );
-    
+
     if (current.rows.length === 0) {
       throw new Error('Prisoner not found');
     }
 
     const currentData = current.rows[0];
-    
-    const result = await pool.query(
+
+    const result = await client.query(
       `UPDATE prisoners
        SET first_name = $1, last_name = $2, credits = $3, cell_id = $4, entry_date = $5, release_date = $6, danger_level = $7, religion = $8
        WHERE prisoner_id = $9
@@ -112,10 +138,9 @@ async function updatePrisoner(id, prisonerData) {
       ]
     );
     return result.rows[0];
-  } catch (error) {
-    console.error('Error updating prisoner:', error);
-    throw error;
-  }
+
+  })
+  return updateRow;
 }
 
 //odstranění vězně
@@ -164,8 +189,9 @@ async function increasePrisonerCredit(id, amount) {
 
 // Odečtení kreditu vězně
 async function decreasePrisonerCredit(id, amount) {
-  try {
-    const result = await pool.query(
+  const updateRow = await executeInTransaction(async (client) => {
+
+    const result = await client.query(
       `UPDATE prisoners
         SET credits = credits - $1
         WHERE prisoner_id = $2
@@ -173,10 +199,9 @@ async function decreasePrisonerCredit(id, amount) {
       [amount, id]
     );
     return result.rows[0];
-  } catch (error) {
-    console.error('Error decreasing prisoner credit:', error);
-    throw error;
-  }
+
+  })
+  return updateRow;
 }
 
 

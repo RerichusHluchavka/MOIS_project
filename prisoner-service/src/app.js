@@ -82,7 +82,7 @@ app.get('/prisoners/:id/credit', authenticateToken(['admin', 'prison']),
 );
 
 // PATCH - zvýšení kreditu vězně
-app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin', 'prison']),
+app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin', 'prison', 'payment']),
   createRouteHandler({
     getDataFn: (req) => increasePrisonerCredit(req.params.id, req.body.amount),
     notFoundError: 'Prisoner not found',

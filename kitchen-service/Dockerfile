@@ -2,8 +2,6 @@ FROM node:25-alpine
 
 WORKDIR /app
 
-
-
 # Kopíruj package soubory
 COPY package*.json ./
 

@@ -7,7 +7,9 @@ function createRouteHandler(options) {
         transformData = null,
         includeCount = false,
         successMessage = null,
-        skipNotFoundCheck = false
+        skipNotFoundCheck = false,
+        customResponse = false
+
     } = options;
 
 
@@ -23,16 +25,30 @@ function createRouteHandler(options) {
                 });
             }
 
+
+
             let responseData = data;
             if (transformData) {
                 responseData = transformData(data);
             }
 
-            const response = {
-                success: true,
-                ...(responseData && { data: responseData }),
-                ...(successMessage && { message: successMessage })
-            };
+            let response;
+            if (customResponse && data === 0) {
+                console.log(data);
+                response = {
+                    success: true,
+                    data: 0,
+                    message: "Nemá žádné allergeny",
+                    count:0
+                };
+            } else {
+                response = {
+                    success: true,
+                    ...(responseData && { data: responseData }),
+                    ...(successMessage && { message: successMessage })
+                };
+            }
+
 
             if (includeCount && Array.isArray(responseData)) {
                 response.count = responseData.length;
@@ -43,10 +59,38 @@ function createRouteHandler(options) {
             console.error('Route handler error:', error);
             res.status(500).json({
                 success: false,
-                error: serverError
+                error: serverError,
+                error_message: error.message
             });
         }
     };
 }
 
-module.exports = { createRouteHandler };
+function extractTokenFromRequest(req) {
+    // 1. Získání hlavičky Authorization
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader) {
+        // Hlavička Authorization chybí
+        return null;
+    }
+
+    // 2. Kontrola formátu (očekává se 'Bearer <token>')
+    const parts = authHeader.split(' ');
+
+    if (parts.length === 2 && parts[0] === 'Bearer') {
+        // Vracíme samotný token (druhá část pole)
+        return authHeader;
+        // POZNÁMKA: Vracíme celý řetězec "Bearer <token>", protože je nutný pro hlavičku Axiosu
+    }
+
+    // Pokud je token jen samotný řetězec bez "Bearer"
+    if (parts.length === 1) {
+        return authHeader;
+    }
+
+    // Chybný formát
+    return null;
+}
+
+module.exports = { createRouteHandler, extractTokenFromRequest };
