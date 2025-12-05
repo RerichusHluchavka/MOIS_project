@@ -5,27 +5,59 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <form action="#" method="post" novalidate>
+
+  <form (ngSubmit)="onLogin()" #loginForm="ngForm" novalidate>
+
     <ion-list lines="full">
+
+      <!-- Username -->
       <ion-item>
-        <ion-label position="stacked">Email</ion-label>
-        <ion-input name="email" type="email" autocomplete="email" inputmode="email" placeholder="e.g. jane@company.com"
-          required>
+        <ion-label position="stacked">Username</ion-label>
+        <ion-input
+          [(ngModel)]="username"
+          name="username"
+          type="text"
+          required
+          autocomplete="username"
+          placeholder="admin / inventory / kitchen">
         </ion-input>
       </ion-item>
 
+      <!-- Password -->
       <ion-item>
         <ion-label position="stacked">Password</ion-label>
-        <ion-input name="password" type="password" autocomplete="current-password" minlength="6" placeholder="••••••••"
-          required>
+        <ion-input
+          [(ngModel)]="password"
+          name="password"
+          type="password"
+          required
+          minlength="4"
+          autocomplete="current-password"
+          placeholder="password">
         </ion-input>
       </ion-item>
+
     </ion-list>
 
+    <!-- Error message -->
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p class="ion-padding-top">{{ errorMessage }}</p>
+    </ion-text>
 
-    <ion-button expand="block" class="ion-margin-top" type="submit">
+    <!-- Loading spinner -->
+    <div class="ion-text-center ion-margin-top" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Submit button -->
+    <ion-button
+      expand="block"
+      class="ion-margin-top"
+      type="submit"
+      [disabled]="loading || !loginForm.form.valid">
       Sign in
     </ion-button>
 
   </form>
+
 </ion-content>
