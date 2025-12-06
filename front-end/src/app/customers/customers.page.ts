@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { FormModalComponent } from '../components/form-modal.component';
 import { options } from 'ionicons/icons';
+import { CreditChargeModalComponent } from '../components/credit-charge-modal.component';
 
 interface Prisoner {
   prisoner_id: number;
@@ -86,7 +87,7 @@ export class CustomersPage implements OnInit {
     { key: 'first_name', label: 'First Name', type: 'text', required: true },
     { key: 'last_name', label: 'Last Name', type: 'text', required: true },
     { key: 'credits', label: 'Credits', type: 'number', required: true },
-    { key: 'cell_id', label: 'Cell ID', type: 'select', required: true, options: this.cellIds},
+    { key: 'cell_id', label: 'Cell ID', type: 'select', required: true, options: this.cellIds },
     { key: 'entry_date', label: 'Entry Date', type: 'date', required: true },
     { key: 'release_date', label: 'Release Date', type: 'date', required: false },
     { key: 'danger_level', label: 'Danger Level', type: 'number', required: true },
@@ -301,5 +302,27 @@ export class CustomersPage implements OnInit {
       }
     });
   }
-  
+
+  async startCreditCharge(prisonerId: number) {
+    const modal = await this.modalController.create({
+      component: CreditChargeModalComponent,
+      componentProps: {
+        prisonerId: prisonerId // Předáme ID vězně, komu dobíjíme
+      }
+    });
+
+    await modal.present();
+
+    // Čekání na výsledek
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role === 'success' && data.success) {
+      console.log(`Dobito ${data.amount} kreditů pro vězně ID ${prisonerId}.`);
+      const index = this.prisoners.findIndex(i => i.prisoner_id === prisonerId);
+      if (index !== -1) {
+        this.prisoners[index].credits += data.amount;
+      }
+    }
+  }
+
 }

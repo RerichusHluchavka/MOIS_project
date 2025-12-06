@@ -17,7 +17,10 @@ app.post('/create-payment', express.json(), async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount, // Vždy v nejmenší jednotce (např. centy)
       currency: 'czk',
-      metadata: { order_id: orderId }, // Důležité pro zpětnou identifikaci
+      metadata: { 
+        order_id: orderId,
+        prisonerId: prisonerId
+       }, // Důležité pro zpětnou identifikaci
     });
 
     // Frontend potřebuje jen tento klíč pro dokončení platby
@@ -47,6 +50,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     const finalAmount = paymentIntent.amount;
     const prisonerId = paymentIntent.metadata.prisonerId;
     console.log(finalAmount);
+    console.log(prisonerId);
     const JWT_SECRET = 'jwt-secret-key-change-in-production';
 
     // ZDE MUSÍTE:
