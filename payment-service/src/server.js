@@ -75,7 +75,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
           'Authorization': `Bearer ${serviceToken}`
         },
         body: JSON.stringify({
-          amount: finalAmount/100
+          amount: Math.floor(finalAmount/100)
         })
       });
 

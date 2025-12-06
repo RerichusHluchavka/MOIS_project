@@ -88,6 +88,10 @@ async function getAllPrisoners() {
 // Vytvoření nového vězně
 async function createPrisoner(prisonerData) {
   const { first_name, last_name, credits, cell_id, entry_date, release_date, danger_level, religion } = prisonerData;
+  if(entry_date == null){
+    entry_date = new Date();
+  }
+
   try {
     const result = await pool.query(
       `INSERT INTO prisoners
