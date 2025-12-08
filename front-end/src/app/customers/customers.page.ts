@@ -15,6 +15,9 @@ import { ModalController, IonicModule } from '@ionic/angular';
 import { FormModalComponent } from '../components/form-modal.component';
 import { options } from 'ionicons/icons';
 import { CreditChargeModalComponent } from '../components/credit-charge-modal.component';
+import { GenericTableModalComponent } from '../components/data-modal.component';
+import { TableColumn } from '../components/data-modal.interface';
+import { lastValueFrom } from 'rxjs';
 
 interface Prisoner {
   prisoner_id: number;
@@ -44,6 +47,12 @@ interface PrisonerResponse {
   success: boolean;
   data: Prisoner;
   count: number;
+}
+
+interface Allergen {
+  allergen_id: number,
+  allergen_name: string,
+  severity: string
 }
 
 @Component({
@@ -232,6 +241,7 @@ export class CustomersPage implements OnInit {
     this.openItemModal();
   }
 
+
   deletePrisoner(id: number) {
     this.http.delete<PrisonerResponse>(`${this.API_URL}/prisoners/${id}`, {
     }).subscribe({
@@ -323,6 +333,52 @@ export class CustomersPage implements OnInit {
         this.prisoners[index].credits += data.amount;
       }
     }
+  }
+
+  async getPrisonerAllergens(prisonerId: number): Promise<Allergen[]> {
+    this.loading = true;
+
+    try {
+      const response = await lastValueFrom(
+        this.http.get<any>(`${this.API_URL}/prisoners/${prisonerId}/allergens`)
+      );
+
+      this.loading = false;
+
+      return response.data;
+
+    } catch (err) {
+      this.loading = false;
+      console.error('Chyba při načítání alergenů:', err);
+      throw err;
+    }
+  }
+
+  async showAllergens(prisonerId: number) {
+
+    const allergens = await this.getPrisonerAllergens(prisonerId);
+
+    console.log(allergens);
+
+    const columns: TableColumn[] = [
+      { key: 'allergen_id', label: 'Allergen number' },
+      { key: 'allergen_name', label: 'Allergen name' },
+      { key: 'severity', label: 'Severity' },
+    ];
+
+    // 3. Vytvoření a zobrazení modalu
+    const modal = await this.modalController.create({
+      component: GenericTableModalComponent,
+      componentProps: {
+        title: 'Prisoner allergens',
+        data: allergens,
+        columns: columns
+      },
+      // Volitelné: Omezení výšky modalu, aby se přizpůsobil obsahu
+      cssClass: 'auto-height-modal compact-modal'
+    });
+
+    await modal.present();
   }
 
 }

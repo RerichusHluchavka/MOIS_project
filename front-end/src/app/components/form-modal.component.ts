@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
   ]
 })
 
+//Modal na univerzální formulář
 
 export class FormModalComponent implements OnInit {
 

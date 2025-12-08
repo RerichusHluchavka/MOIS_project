@@ -232,7 +232,8 @@ app.get('/prisoners/:id/allergens', authenticateToken(['admin', 'prison']),
     getDataFn: (req) => getAllergensByPrisonerId(req.params.id),
     notFoundError: 'No allergens found for prisoner',
     serverError: 'Failed to fetch allergens for prisoner',
-    includeCount: true
+    includeCount: true,
+    skipNotFoundCheck: true
   })
 );
 
