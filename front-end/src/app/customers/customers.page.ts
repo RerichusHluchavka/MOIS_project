@@ -336,19 +336,14 @@ export class CustomersPage implements OnInit {
   }
 
   async getPrisonerAllergens(prisonerId: number): Promise<Allergen[]> {
-    this.loading = true;
 
     try {
       const response = await lastValueFrom(
         this.http.get<any>(`${this.API_URL}/prisoners/${prisonerId}/allergens`)
       );
-
-      this.loading = false;
-
       return response.data;
 
     } catch (err) {
-      this.loading = false;
       console.error('Chyba při načítání alergenů:', err);
       throw err;
     }
