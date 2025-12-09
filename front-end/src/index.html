@@ -8,15 +8,44 @@
   <base href="/" />
 
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
+  <meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  
+  script-src 'self' https://js.stripe.com 'sha256-ieoeWczDHkReVBsRBqaal5AFMlBtNjMzgwKvLqi/tSU=';
+  
+  style-src 'self' 
+    'sha256-dd4J3UnQShsOmqcYi4vN5BT3mGZB/0fOwBA72rsguKc=' 
+    'sha256-3ewiyoPIApyJinIIn0TnP8UgpcBBGPZRuflC7DYK6K0='
+    'sha256-nxHdSKXQrNirHbO4TO5Etd82TrlphIn1cbqucSG5M2c='
+    'sha256-THje5pivncWBj1pnoY8XZCQAFB9oj/fame1ZCxCOB48='
+    'sha256-7TsbdWrG3befY5I5DwjgfCDkL97fM9ZERjZ9o0DS2qo='
+    'sha256-8sLkpfp1tlSKOjyjMtI7eUm7MN1H1m5Dq3VHIqWkivU='
+    'sha256-KNOMlhyNYj5WFpZKEhFdFdLyv2A1/OXe37SPUmk+zlg='
+    'sha256-7z00+9kQm5tzBPEEzZl6V5rgFR67VRAHOznZloLSdOA='
+    'sha256-c8oaK/fAKVpwrsnbBwL/kx0fiTm+B4Ch4edMwPqpUbY='
+    'sha256-Dbq3RUBFeYEfFf1b8cQI2lpLBGysssS9IW5j/NOIsuY='
+    'sha256-IY++SnUaABSpRDlBylVaptHkt644vaylB2FX2i5CAy0='
+    'sha256-5ByPIe9D/vGpjxG/8+GL/B26Wdk/MgiJtgcoSSElU5g='
+    'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='
+    'sha256-AZwN0F4N6986fFXExSaJrsmb8ZhqAmWp+YpSe7cKhUM=';
+  
+  img-src 'self' data: https://q.stripe.com;
+  frame-src https://js.stripe.com;
+  connect-src 'self' https://api.stripe.com https://checkout.stripe.com http://localhost;
+">
+
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body>

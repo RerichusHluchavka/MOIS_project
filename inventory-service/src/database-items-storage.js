@@ -23,7 +23,7 @@ items table schema:
 - item_id SERIAL PRIMARY KEY,
 - name varchar,
 - unit varchar,
-- quantity integer
+- storage_minimum integer
 
 storage table schema:
 - storage_id SERIAL PRIMARY KEY,
@@ -61,13 +61,13 @@ async function getItemById(itemId) {
 
 // Vytvoření nového itemu
 async function createItem(itemData) {
-  const { name, unit, quantity } = itemData;
+  const { name, unit, storage_minimum } = itemData;
   try {
     const result = await pool.query(
-      `INSERT INTO items (name, unit, quantity)
+      `INSERT INTO items (name, unit, storage_minimum)
         VALUES ($1, $2, $3)
         RETURNING *`,
-      [name, unit, quantity || 0]
+      [name, unit, storage_minimum || 0]
     );
     return result.rows[0];
   } catch (error) {
@@ -78,14 +78,14 @@ async function createItem(itemData) {
 
 // Aktualizace itemu
 async function updateItem(itemId, itemData) {
-  const { name, unit, quantity } = itemData;
+  const { name, unit, storage_minimum } = itemData;
   try {
     const result = await pool.query(
       `UPDATE items
-        SET name = $1, unit = $2, quantity = $3
+        SET name = $1, unit = $2, storage_minimum = $3
         WHERE item_id = $4
         RETURNING *`,
-      [name, unit, quantity, itemId]
+      [name, unit, storage_minimum, itemId]
     );
     return result.rows[0];
   } catch (error) {

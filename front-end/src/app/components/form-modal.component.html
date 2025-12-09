@@ -1,0 +1,44 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-title>{{ formTitle }}</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="onCancel()">
+                <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+    <form [formGroup]="universalForm" (ngSubmit)="onSubmit()">
+        <ion-item *ngFor="let field of formFields" lines="full">
+            <ion-label position="stacked">{{ field.label }}</ion-label>
+            <ng-container [ngSwitch]="field.type">
+
+                <ion-input *ngSwitchCase="'text'" [type]="field.type" [formControlName]="field.key"
+                    [required]="field.required">
+                </ion-input>
+
+                <ion-input *ngSwitchCase="'number'" [type]="field.type" [formControlName]="field.key"
+                    [required]="field.required">
+                </ion-input>
+
+                <ion-select *ngSwitchCase="'select'" [formControlName]="field.key" [required]="field.required"
+                    interface="popover">
+                    <ion-select-option *ngFor="let option of field.options" [value]="option">
+                        {{ option }}
+                    </ion-select-option>
+                </ion-select>
+
+                <ion-input *ngSwitchCase="'date'" [type]="field.type" [formControlName]="field.key"
+                    [required]="field.required">
+                </ion-input>
+            </ng-container>
+
+        </ion-item>
+        <ion-button expand="block" type="submit" class="ion-margin-top">
+            Save
+        </ion-button>
+    </form>
+
+</ion-content>

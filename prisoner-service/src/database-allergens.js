@@ -27,7 +27,7 @@ allergens table schema:
 - allergen_id integer PRIMARY KEY,
 - allergen_name varchar
 
-prisoners_allergens table schema:
+prisoner_allergens table schema:
 - prisoner_id integer foreign key references prisoners(prisoner_id),
 - allergen_id integer foreign key references allergens(allergen_id),
 - severity varchar - low, Medium, High
@@ -40,22 +40,22 @@ async function getAllAllergens() {
   try {
     const result = await pool.query('SELECT * FROM allergens ORDER BY allergen_id;');
     return result.rows;
-    } catch (error) {
+  } catch (error) {
     console.error('Error getting allergens:', error);
     throw error;
-    }
+  }
 }
 
 // Získání alergenů pro vězně podle ID vězně
 async function getAllergensByPrisonerId(prisonerId) {
   try {
     const result = await pool.query(
-        `SELECT a.allergen_id, a.allergen_name, pa.severity
-            FROM allergens a
-            JOIN prisoners_allergens pa ON a.allergen_id = pa.allergen_id
-            WHERE pa.prisoner_id = $1
-            ORDER BY a.allergen_id;`,
-        [prisonerId]
+      `SELECT a.allergen_id, a.allergen_name, pa.severity
+       FROM allergens a
+       JOIN prisoner_allergens pa ON a.allergen_id = pa.allergen_id
+       WHERE pa.prisoner_id = $1
+       ORDER BY a.allergen_id;`,
+      [prisonerId]
     );
     return result.rows;
   } catch (error) {
@@ -68,38 +68,37 @@ async function getAllergensByPrisonerId(prisonerId) {
 async function addAllergenToPrisoner(prisonerId, allergenId, severity) {
   try {
     const result = await pool.query(
-        `INSERT INTO prisoners_allergens (prisoner_id, allergen_id, severity)
-            VALUES ($1, $2, $3)
-            RETURNING *;`,
-        [prisonerId, allergenId, severity]
+      `INSERT INTO prisoner_allergens (prisoner_id, allergen_id, severity)
+       VALUES ($1, $2, $3)
+       RETURNING *;`,
+      [prisonerId, allergenId, severity]
     );
     return result.rows[0];
-  }
-    catch (error) {
+  } catch (error) {
     console.error('Error adding allergen to prisoner:', error);
     throw error;
-    }
+  }
 }
 
 // Odebrání alergenu od vězně
 async function removeAllergenFromPrisoner(prisonerId, allergenId) {
-    try {
+  try {
     const result = await pool.query(
-        `DELETE FROM prisoners_allergens
-            WHERE prisoner_id = $1 AND allergen_id = $2
-            RETURNING *;`,
-        [prisonerId, allergenId]
+      `DELETE FROM prisoner_allergens
+       WHERE prisoner_id = $1 AND allergen_id = $2
+       RETURNING *;`,
+      [prisonerId, allergenId]
     );
     return result.rows[0];
-    } catch (error) {
+  } catch (error) {
     console.error('Error removing allergen from prisoner:', error);
     throw error;
-    }
+  }
 }
 
 module.exports = {
-    getAllAllergens,
-    getAllergensByPrisonerId,
-    addAllergenToPrisoner,
-    removeAllergenFromPrisoner
+  getAllAllergens,
+  getAllergensByPrisonerId,
+  addAllergenToPrisoner,
+  removeAllergenFromPrisoner
 };

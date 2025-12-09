@@ -7,22 +7,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  // přidáváme token jen k našim backendům
   const isApiUrl =
-    req.url.startsWith('http://localhost:3000') ||
-    req.url.startsWith('http://localhost:3001') ||
-    req.url.startsWith('http://localhost:3002') ||
-    req.url.startsWith('http://localhost:3003');
+    req.url.startsWith('http://localhost/api') ||
+    req.url.startsWith('/api');
 
   if (!isApiUrl) {
     return next(req);
   }
 
-  const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return next(authReq);
+  return next(
+    req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  );
 };

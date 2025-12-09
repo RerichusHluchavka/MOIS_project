@@ -31,17 +31,17 @@ async function initializeDatabase() {
         username VARCHAR(50) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) NOT NULL
-    )
+      )
     `);
 
     // Create default users if they don't exist
     const hashedPassword = await bcrypt.hash('password', 10);
-    
+
     const defaultUsers = [
-      { username: 'admin', password: hashedPassword, role: 'admin' },
-      { username: 'kitchen', password: hashedPassword, role: 'kitchen' },
+      { username: 'admin',     password: hashedPassword, role: 'admin' },
+      { username: 'kitchen',   password: hashedPassword, role: 'kitchen' },
       { username: 'inventory', password: hashedPassword, role: 'inventory' },
-      { username: 'prison', password: hashedPassword, role: 'prison' }
+      { username: 'prison',    password: hashedPassword, role: 'prison' }
     ];
 
     for (const user of defaultUsers) {
@@ -58,7 +58,7 @@ async function initializeDatabase() {
 }
 
 // Login endpoint
-app.post('/auth/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -101,7 +101,7 @@ app.post('/auth/login', async (req, res) => {
         id: user.id,
         username: user.username,
         role: user.role
-    }
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -110,10 +110,13 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // Token verification endpoint
-app.post('/auth/verify', (req, res) => {
+app.post('/verify', (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ')
+      ? header.split(' ')[1]
+      : header;
+
     if (!token) {
       return res.status(401).json({ error: 'No token provided' });
     }
@@ -126,22 +129,22 @@ app.post('/auth/verify', (req, res) => {
 });
 
 // Create new user - only admin can do it
-app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
+app.post('/users', authenticateToken(['admin']), async (req, res) => {
   try {
     const { username, password, role } = req.body;
 
     // Validate input
     if (!username || !password || !role) {
-      return res.status(400).json({ 
-        error: 'Username, password, and role are required' 
+      return res.status(400).json({
+        error: 'Username, password, and role are required'
       });
     }
 
     // Validate role
     const validRoles = ['admin', 'kitchen', 'inventory', 'prison'];
     if (!validRoles.includes(role)) {
-      return res.status(400).json({ 
-        error: 'Invalid role. Must be one of: admin, kitchen, inventory, prison' 
+      return res.status(400).json({
+        error: 'Invalid role. Must be one of: admin, kitchen, inventory, prison'
       });
     }
 
@@ -165,7 +168,7 @@ app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
     );
 
     const newUser = result.rows[0];
-    
+
     res.status(201).json({
       message: 'User created successfully',
       user: {
@@ -181,7 +184,7 @@ app.post('/auth/users', authenticateToken(['admin']), async (req, res) => {
 });
 
 // Get all users - only admin can do it
-app.get('/auth/users', authenticateToken(['admin']), async (req, res) => {
+app.get('/users', authenticateToken(['admin']), async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, username, role FROM users ORDER BY id'
@@ -196,8 +199,38 @@ app.get('/auth/users', authenticateToken(['admin']), async (req, res) => {
   }
 });
 
+// Change user role - only admin can do it
+app.patch('/users/:id/role', authenticateToken(['admin']), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { role } = req.body;
+
+    const validRoles = ['admin', 'kitchen', 'inventory', 'prison'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role',
+      [role, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Change role error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Delete user - only admin can do it
-app.delete('/auth/users/:id', authenticateToken(['admin']), async (req, res) => {
+app.delete('/users/:id', authenticateToken(['admin']), async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 
@@ -225,7 +258,6 @@ app.delete('/auth/users/:id', authenticateToken(['admin']), async (req, res) => 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 // Health check endpoint
 app.get('/health', (req, res) => {

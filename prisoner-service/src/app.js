@@ -1,6 +1,7 @@
 const express = require('express');
 const { authenticateToken } = require('../auth-middleware');
 const { createRouteHandler } = require('./routeHandler');
+const cors = require('cors');
 
 const { 
   getPrisonerById,
@@ -18,6 +19,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // Routes for prisoners
 
@@ -82,7 +84,7 @@ app.get('/prisoners/:id/credit', authenticateToken(['admin', 'prison']),
 );
 
 // PATCH - zvýšení kreditu vězně
-app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin', 'prison']),
+app.patch('/prisoners/:id/credit/increase', authenticateToken(['admin', 'prison', 'payment']),
   createRouteHandler({
     getDataFn: (req) => increasePrisonerCredit(req.params.id, req.body.amount),
     notFoundError: 'Prisoner not found',
@@ -230,7 +232,8 @@ app.get('/prisoners/:id/allergens', authenticateToken(['admin', 'prison']),
     getDataFn: (req) => getAllergensByPrisonerId(req.params.id),
     notFoundError: 'No allergens found for prisoner',
     serverError: 'Failed to fetch allergens for prisoner',
-    includeCount: true
+    includeCount: true,
+    skipNotFoundCheck: true
   })
 );
 

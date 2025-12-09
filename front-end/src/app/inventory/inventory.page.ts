@@ -16,7 +16,7 @@ export interface InventoryItem {
   item_id: number;
   name: string;
   unit: string;
-  quantity: number;
+  storage_minimum: number;
 }
 
 interface ItemsResponse {
@@ -57,13 +57,13 @@ export class InventoryPage implements OnInit {
   isAddMode = false;
   isEditMode = false;
 
-  formItem: { id?: number; name: string; unit: string; quantity: number } = {
+  formItem: { id?: number; name: string; unit: string; storage_minimum: number } = {
     name: '',
     unit: '',
-    quantity: 0
+    storage_minimum: 0
   };
 
-  private readonly API_URL = 'http://localhost:3002';
+  private readonly API_URL = 'http://localhost/api/inventory';
 
   constructor(private http: HttpClient) {}
 
@@ -89,13 +89,14 @@ export class InventoryPage implements OnInit {
   }
 
   startAddItem() {
+    console.log("asdsd");
     this.isAddMode = true;
     this.isEditMode = false;
     this.formError = null;
     this.formItem = {
       name: '',
       unit: '',
-      quantity: 0
+      storage_minimum: 0
     };
   }
 
@@ -107,7 +108,7 @@ export class InventoryPage implements OnInit {
       id: item.item_id,
       name: item.name,
       unit: item.unit,
-      quantity: item.quantity
+      storage_minimum: item.storage_minimum
     };
   }
 
@@ -118,7 +119,7 @@ export class InventoryPage implements OnInit {
     this.formItem = {
       name: '',
       unit: '',
-      quantity: 0
+      storage_minimum: 0
     };
   }
 
@@ -130,8 +131,8 @@ export class InventoryPage implements OnInit {
       return;
     }
 
-    if (this.formItem.quantity < 0) {
-      this.formError = 'Quantity nesmí být záporné.';
+    if (this.formItem.storage_minimum < 0) {
+      this.formError = 'Storage minimum nesmí být záporné.';
       return;
     }
 
@@ -148,7 +149,7 @@ export class InventoryPage implements OnInit {
     this.http.post<ItemResponse>(`${this.API_URL}/items`, {
       name: this.formItem.name,
       unit: this.formItem.unit,
-      quantity: this.formItem.quantity
+      storage_minimum: this.formItem.storage_minimum
     }).subscribe({
       next: (res) => {
         this.items.push(res.data);
@@ -169,7 +170,7 @@ export class InventoryPage implements OnInit {
     this.http.put<ItemResponse>(`${this.API_URL}/items/${id}`, {
       name: this.formItem.name,
       unit: this.formItem.unit,
-      quantity: this.formItem.quantity
+      storage_minimum: this.formItem.storage_minimum
     }).subscribe({
       next: (res) => {
         const index = this.items.findIndex(i => i.item_id === id);

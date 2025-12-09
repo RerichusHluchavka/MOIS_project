@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -13,27 +14,39 @@ import {
   IonItem,
   IonLabel,
   IonToggle,
-  IonButton,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonNote,
-  IonInput,
-  IonModal,
   IonList,
-  IonButtons,
   IonIcon,
-  IonText
+  IonText,
+  IonSpinner,
+  IonNote,
+  IonButton,
+  IonSelect,
+  IonSelectOption
 } from '@ionic/angular/standalone';
+
+import {
+  HttpClient,
+  HttpClientModule,
+  HttpHeaders
+} from '@angular/common/http';
+
+interface CurrentUser {
+  id: number;
+  username: string;
+  role: string;
+}
 
 @Component({
   selector: 'app-settings',
+  standalone: true,
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
-  standalone: true,
   imports: [
+    IonNote,
     CommonModule,
     FormsModule,
+    HttpClientModule,
+
     IonContent,
     IonHeader,
     IonTitle,
@@ -45,33 +58,29 @@ import {
     IonItem,
     IonLabel,
     IonToggle,
-    IonButton,
-    IonGrid,
-    IonRow,
-    IonCol,
-    IonNote,
-    IonInput,
-    IonModal,
     IonList,
-    IonButtons,
     IonIcon,
-    IonText
-  ]
+    IonText,
+    IonSpinner,
+
+    IonButton,
+    IonSelect,
+    IonSelectOption
+  ],
 })
 export class SettingsPage implements OnInit, OnDestroy {
+
   darkMode = false;
   followSystem = false;
 
-  hasAdminPermission = false;
-  addUserOpen = false;
+  currentUser: CurrentUser | null = null;
+  userLoading = false;
+  userError: string | null = null;
 
-  users = [
-    { name: 'Alice', canAddUsers: true },
-    { name: 'Bob', canAddUsers: false },
-    { name: 'Charlie', canAddUsers: false }
-  ];
+  roleSaving = false;
+  roleError: string | null = null;
 
-  newUser = { name: '', password: '', canAddUsers: false };
+  private readonly AUTH_API = 'http://localhost/api/auth';
 
   private prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
   private prefersDarkHandler = (e: MediaQueryListEvent) => {
@@ -80,6 +89,8 @@ export class SettingsPage implements OnInit, OnDestroy {
       this.applyTheme(this.darkMode);
     }
   };
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     const savedDark = localStorage.getItem('darkMode');
@@ -95,6 +106,7 @@ export class SettingsPage implements OnInit, OnDestroy {
     }
 
     this.applyTheme(this.darkMode);
+    this.loadCurrentUser();
   }
 
   ngOnDestroy() {
@@ -116,43 +128,86 @@ export class SettingsPage implements OnInit, OnDestroy {
   }
 
   onToggleTheme(enabled: boolean) {
-    if (this.followSystem){
-      return;
-    }
+    if (this.followSystem) return;
 
     this.darkMode = enabled;
     localStorage.setItem('darkMode', JSON.stringify(enabled));
     this.applyTheme(enabled);
   }
 
-  // 🎨 Apply theme – přepíná i <html>
   private applyTheme(enabled: boolean) {
     document.body.classList.toggle('dark', enabled);
     document.documentElement.classList.toggle('dark', enabled);
   }
 
-  // 👥 User management
-  openAddUserModal() {
-    this.addUserOpen = true;
-  }
+  // =============== UŽIVATEL ===============
+  private loadCurrentUser() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.currentUser = null;
+      return;
+    }
 
-  confirmAddUser() {
-    if (!this.newUser.name || !this.newUser.password) return;
+    this.userLoading = true;
+    this.userError = null;
 
-    this.users.push({
-      name: this.newUser.name,
-      canAddUsers: this.newUser.canAddUsers
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
     });
 
-    this.newUser = { name: '', password: '', canAddUsers: false };
-    this.addUserOpen = false;
+    this.http.post<any>(`${this.AUTH_API}/verify`, {}, { headers }).subscribe({
+      next: (res) => {
+        if (res?.user) {
+          this.currentUser = {
+            id: res.user.userId,
+            username: res.user.username,
+            role: res.user.role,
+          };
+        } else {
+          this.currentUser = null;
+        }
+        this.userLoading = false;
+      },
+      error: (err) => {
+        console.error('Verify error', err);
+        this.userError = 'Failed to load user info.';
+        this.userLoading = false;
+      },
+    });
   }
 
-  deleteUser(u: any) {
-    this.users = this.users.filter(x => x !== u);
-  }
+  // =============== ZMĚNA ROLE (jen admin) ===============
+  changeRole() {
+    if (!this.currentUser) return;
 
-  onToggleUserPermission(u: any) {
-    console.log(`User ${u.name} permission changed:`, u.canAddUsers);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      this.roleError = 'Not authenticated.';
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    this.roleSaving = true;
+    this.roleError = null;
+
+    this.http
+      .patch(
+        `${this.AUTH_API}/users/${this.currentUser.id}/role`,
+        { role: this.currentUser.role },
+        { headers }
+      )
+      .subscribe({
+        next: () => {
+          this.roleSaving = false;
+        },
+        error: (err) => {
+          console.error('Change role error', err);
+          this.roleError = 'Failed to update role.';
+          this.roleSaving = false;
+        },
+      });
   }
 }

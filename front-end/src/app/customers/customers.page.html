@@ -14,9 +14,7 @@
     <ion-card-content>
       <ion-item>
         <ion-label position="stacked">Search by number</ion-label>
-        <ion-input
-          type="number"
-          placeholder="Enter consumer number">
+        <ion-input type="number" placeholder="Enter prisoner number">
         </ion-input>
       </ion-item>
 
@@ -30,7 +28,7 @@
         </ion-select>
       </ion-item>
 
-      <ion-button expand="block" class="ion-margin-top" color="primary">
+      <ion-button expand="block" class="ion-margin-top" color="primary" (click)="startAddItem()">
         Add new record
       </ion-button>
     </ion-card-content>
@@ -44,56 +42,59 @@
     <ion-card-content>
       <ion-grid>
         <ion-row class="table-header">
-          <ion-col size="2"><strong>ID</strong></ion-col>
-          <ion-col size="4"><strong>Name</strong></ion-col>
-          <ion-col size="3"><strong>Status</strong></ion-col>
+          <ion-col size="0.5"><strong>ID</strong></ion-col>
+          <ion-col size="1"><strong>First name</strong></ion-col>
+          <ion-col size="1"><strong>Last name</strong></ion-col>
+          <ion-col size="1"><strong>Credits</strong></ion-col>
+          <ion-col size="1"><strong>Cell</strong></ion-col>
+          <ion-col size="1"><strong>Entry date</strong></ion-col>
+          <ion-col size="1"><strong>Release date</strong></ion-col>
+          <ion-col size="1"><strong>Danger level</strong></ion-col>
+          <ion-col size="1"><strong>Religion</strong></ion-col>
           <ion-col size="3"><strong>Actions</strong></ion-col>
         </ion-row>
 
-        <ion-row>
-          <ion-col size="2">1001</ion-col>
-          <ion-col size="4">John Smith</ion-col>
-          <ion-col size="3">Active</ion-col>
-          <ion-col size="3">
-            <ion-button fill="clear" color="medium" size="small">Edit</ion-button>
+        <ion-row *ngIf="loading">
+          <ion-col>
+            <ion-spinner name="crescent"></ion-spinner> Loading prisoners...
           </ion-col>
         </ion-row>
 
-        <ion-row>
-          <ion-col size="2">1002</ion-col>
-          <ion-col size="4">Emma Brown</ion-col>
-          <ion-col size="3">Inactive</ion-col>
-          <ion-col size="3">
-            <ion-button fill="clear" color="medium" size="small">Edit</ion-button>
+        <ion-row *ngIf="!loading && error">
+          <ion-col color="danger">
+            {{ error }}
           </ion-col>
         </ion-row>
 
-        <ion-row>
-          <ion-col size="2">1003</ion-col>
-          <ion-col size="4">Lucas White</ion-col>
-          <ion-col size="3">Excluded</ion-col>
+        <ion-row *ngFor="let prisoner of prisoners" class="ion-align-items-center">
+          <ion-col size="0.5">{{ prisoner.prisoner_id }}</ion-col>
+          <ion-col size="1">{{ prisoner.first_name }}</ion-col>
+          <ion-col size="1">{{ prisoner.last_name }}</ion-col>
+          <ion-col size="1">{{ prisoner.credits }}</ion-col>
+          <ion-col size="1">
+            {{ cellMap[prisoner.cell_id] || '?' }}
+          </ion-col>          
+          <ion-col size="1">{{ prisoner.entry_date | date: 'shortDate' }}</ion-col>
+          <ion-col size="1">{{ prisoner.release_date | date: 'shortDate' }}</ion-col>
+          <ion-col size="1">{{ prisoner.danger_level }}</ion-col>
+          <ion-col size="1">{{ prisoner.religion }}</ion-col>
           <ion-col size="3">
-            <ion-button fill="clear" color="medium" size="small">Edit</ion-button>
+            <ion-button fill="clear" size="small" color="medium" (click)="startEditItem(prisoner)">
+              Edit
+            </ion-button>
+            <ion-button fill="clear" size="small" color="medium" (click)="deletePrisoner(prisoner.prisoner_id)">
+              Delete
+            </ion-button>
+            <ion-button fill="clear" size="small" color="medium" (click)="startCreditCharge(prisoner.prisoner_id)">
+              Charge
+            </ion-button>
+            <ion-button fill="clear" size="small" color="medium" (click)="showAllergens(prisoner.prisoner_id)">
+              Allergens
+            </ion-button>
           </ion-col>
         </ion-row>
 
-        <ion-row>
-          <ion-col size="2">1004</ion-col>
-          <ion-col size="4">Sophia Green</ion-col>
-          <ion-col size="3">Active</ion-col>
-    []      <ion-col size="3">
-            <ion-button fill="clear" color="medium" size="small">Edit</ion-button>
-          </ion-col>
-        </ion-row>
 
-        <ion-row>
-          <ion-col size="2">1005</ion-col>
-          <ion-col size="4">Michael Black</ion-col>
-          <ion-col size="3">Inactive</ion-col>
-          <ion-col size="3">
-            <ion-button fill="clear" color="medium" size="small">Edit</ion-button>
-          </ion-col>
-        </ion-row>
       </ion-grid>
     </ion-card-content>
   </ion-card>

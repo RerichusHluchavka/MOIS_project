@@ -49,7 +49,7 @@ export class LoginPage implements OnInit {
   loading = false;
   errorMessage: string | null = null;
 
-  private readonly AUTH_URL = 'http://localhost:3000/auth/login';
+  private readonly AUTH_URL = 'http://localhost/api/auth/login';
 
   constructor(
     private http: HttpClient,

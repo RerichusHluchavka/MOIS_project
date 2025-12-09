@@ -35,3 +35,25 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/* Světlé výchozí barvy */
+:root {
+    --ion-background-color: #f4f5f8;
+    --ion-text-color: #000000;
+  }
+  
+  /* Dark režim – aktivuje se, když má body třídu .dark */
+  body.dark {
+    --ion-background-color: #000000;
+    --ion-text-color: #ffffff;
+  
+    --ion-color-primary: #4c8dff;
+    --ion-color-primary-contrast: #ffffff;
+  }
+  
+  /* Aby IonContent bralo ty proměnné */
+  ion-content {
+    --background: var(--ion-background-color);
+    color: var(--ion-text-color);
+  }
+  
