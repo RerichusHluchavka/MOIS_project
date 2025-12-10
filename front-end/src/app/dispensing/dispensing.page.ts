@@ -27,7 +27,6 @@ export class DispensingPage {
   status: 'issued' | 'denied' | null = null;
   reason = '';
 
-  // 🔴 zatím napevno – např. Food menu 1
   foodId = 1;
 
   private readonly PRISON_API = 'http://localhost/api/prison';
@@ -46,12 +45,10 @@ export class DispensingPage {
     }
 
     try {
-      // 1️⃣ ověření že vězeň existuje
       await this.http.get(
         `${this.PRISON_API}/prisoners/${this.consumerNumber}`
       ).toPromise();
 
-      // 2️⃣ ověření alergií
       const allergyResult: any = await this.http.get(
         `${this.KITCHEN_API}/food/${this.foodId}/prisoner/${this.consumerNumber}`
       ).toPromise();
@@ -63,7 +60,6 @@ export class DispensingPage {
       }
 
       console.log(this.foodId);
-      // 3️⃣ odečtení porce
       await this.http.patch(
         `${this.KITCHEN_API}/today-menu/${this.foodId}/decrease-portions`,
         { amount: 1 }

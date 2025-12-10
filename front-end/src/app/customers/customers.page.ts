@@ -37,10 +37,8 @@ interface PrisonersResponse {
   count: number;
 }
 
-// reálný typ z /cells – stačí nám teď cell_id
 interface Cell {
   cell_id: number;
-  // klidně si pak doplň další pole podle DB (cell_type_id, capacity, ...)
 }
 
 interface CellsResponse {
@@ -76,6 +74,9 @@ interface Allergen {
 })
 export class CustomersPage implements OnInit {
   prisoners: Prisoner[] = [];
+
+  filteredPrisoners: Prisoner[] = [];
+
   loading = false;
   saving = false;
   error: string | null = null;
@@ -84,6 +85,10 @@ export class CustomersPage implements OnInit {
 
   isAddMode = false;
   isEditMode = false;
+
+  searchTerm = '';
+  selectedCell: 'all' | string = 'all';
+  cellLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   formPrisoner: Prisoner = {
     prisoner_id: 0,
@@ -106,11 +111,6 @@ export class CustomersPage implements OnInit {
     6: 'F'
   };
 
-
-
-  
-  
-
   private prisonerFormFields = [
     { key: 'first_name', label: 'First Name', type: 'text', required: true },
     { key: 'last_name', label: 'Last Name', type: 'text', required: true },
@@ -127,21 +127,20 @@ export class CustomersPage implements OnInit {
   constructor(
     private http: HttpClient,
     private modalController: ModalController
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.loadPrisoners();
     this.loadCells();
   }
 
-  /** Vrátí HttpOptions s Authorization headerem podle uloženého tokenu */
   private getAuthOptions() {
     const token =
       localStorage.getItem('access_token') ||
       localStorage.getItem('token');
 
     if (!token) {
-      console.warn('Chybí access token – request pravděpodobně skončí 401.');
+      console.warn('Chybí access token – request může skončit 401.');
     }
 
     return {
@@ -155,38 +154,39 @@ export class CustomersPage implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.http.get<CellsResponse>(`${this.API_URL}/cells`, this.getAuthOptions()).subscribe({
-      next: (res) => {
-        res.data.forEach(cell => {
-          this.cellIds.push(cell.cell_id);
-        });
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.error = 'Nepodařilo se načíst cely.';
-        this.loading = false;
-      }
-    });
+    this.http.get<CellsResponse>(`${this.API_URL}/cells`, this.getAuthOptions())
+      .subscribe({
+        next: (res) => {
+          res.data.forEach(cell => {
+            this.cellIds.push(cell.cell_id);
+          });
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Nepodařilo se načíst cely.';
+          this.loading = false;
+        }
+      });
   }
 
   loadPrisoners() {
     this.loading = true;
     this.error = null;
 
-    this.http.get<PrisonersResponse>(`${this.API_URL}/prisoners`, this.getAuthOptions()).subscribe({
-      next: (res) => {
-        this.prisoners = res.data || [];
-        // aby filtr pracoval s novými daty
-        this.applyFilters();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.error = 'Nepodařilo se načíst vězně.';
-        this.loading = false;
-      }
-    });
+    this.http.get<PrisonersResponse>(`${this.API_URL}/prisoners`, this.getAuthOptions())
+      .subscribe({
+        next: (res) => {
+          this.prisoners = res.data || [];
+          this.applyFilters();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Nepodařilo se načíst vězně.';
+          this.loading = false;
+        }
+      });
   }
 
   startEditPrisoner(item: Prisoner) {
@@ -196,38 +196,40 @@ export class CustomersPage implements OnInit {
     this.formPrisoner = { ...item };
   }
 
-  searchTerm = '';
-  filter: 'all' | 'Muslim' | 'Christian' | 'Atheist' | 'Buddhist' | 'Jewish' | 'Hindu' = 'all';
-
-  filteredPrisoners: Prisoner[] = [];
-
   applyFilters() {
-    this.filteredPrisoners = this.prisoners.filter(c => {
-      const matchesSearch = this.searchTerm
-        ? c.prisoner_id.toString().includes(this.searchTerm)
-        : true;
-      const matchesFilter = this.filter === 'all' ? true : c.religion === this.filter;
-      return matchesSearch && matchesFilter;
+    const term = this.searchTerm.toLowerCase().trim();
+
+    this.filteredPrisoners = this.prisoners.filter(p => {
+      const matchesSearch =
+        !term ||
+        p.prisoner_id.toString().includes(term) ||
+        p.first_name.toLowerCase().includes(term) ||
+        p.last_name.toLowerCase().includes(term);
+
+      const prisonerCell = this.cellMap[p.cell_id];
+      const matchesCell =
+        this.selectedCell === 'all' ||
+        prisonerCell === this.selectedCell;
+
+      return matchesSearch && matchesCell;
     });
   }
 
-  // Metoda pro otevření modalu
   async openItemModal(prisonerToEdit?: Prisoner) {
 
-    // Nastavení dat (prázdná pro přidání, existující pro úpravu)
     const initialData: Prisoner = prisonerToEdit
       ? prisonerToEdit
       : {
-        prisoner_id: 0,
-        first_name: '',
-        last_name: '',
-        credits: 0,
-        cell_id: 0,
-        entry_date: new Date(),
-        release_date: new Date(),
-        danger_level: 0,
-        religion: '',
-      };
+          prisoner_id: 0,
+          first_name: '',
+          last_name: '',
+          credits: 0,
+          cell_id: 0,
+          entry_date: new Date(),
+          release_date: new Date(),
+          danger_level: 0,
+          religion: '',
+        };
 
     const title = prisonerToEdit ? 'Edit Prisoner' : 'Add New Prisoner';
 
@@ -255,20 +257,21 @@ export class CustomersPage implements OnInit {
     }
   }
 
-  // Příklad, jak zavolat modal pro úpravu
   startEditItem(item: Prisoner) {
     this.openItemModal(item);
   }
 
-  // Příklad, jak zavolat modal pro přidání
   startAddItem() {
     this.openItemModal();
   }
 
   deletePrisoner(id: number) {
     this.saving = true;
-    this.http.delete<PrisonerResponse>(`${this.API_URL}/prisoners/${id}`, this.getAuthOptions()).subscribe({
-      next: (res) => {
+    this.http.delete<PrisonerResponse>(
+      `${this.API_URL}/prisoners/${id}`,
+      this.getAuthOptions()
+    ).subscribe({
+      next: () => {
         const index = this.prisoners.findIndex(i => i.prisoner_id === id);
         if (index !== -1) {
           this.prisoners.splice(index, 1);
@@ -287,16 +290,20 @@ export class CustomersPage implements OnInit {
   private createItem(data: any) {
     this.saving = true;
 
-    this.http.post<PrisonerResponse>(`${this.API_URL}/prisoners`, {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      credits: data.credits,
-      cell_id: data.cell_id,
-      entry_date: data.entry_date,
-      release_date: data.release_date,
-      danger_level: data.danger_level,
-      religion: data.religion
-    }, this.getAuthOptions()).subscribe({
+    this.http.post<PrisonerResponse>(
+      `${this.API_URL}/prisoners`,
+      {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        credits: data.credits,
+        cell_id: data.cell_id,
+        entry_date: data.entry_date,
+        release_date: data.release_date,
+        danger_level: data.danger_level,
+        religion: data.religion
+      },
+      this.getAuthOptions()
+    ).subscribe({
       next: (res) => {
         this.prisoners.push(res.data);
         this.applyFilters();
@@ -313,16 +320,20 @@ export class CustomersPage implements OnInit {
   private updatePrisoner(data: any) {
     this.saving = true;
 
-    this.http.put<PrisonerResponse>(`${this.API_URL}/prisoners/${data.prisoner_id}`, {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      credits: data.credits,
-      cell_id: data.cell_id,
-      entry_date: data.entry_date,
-      release_date: data.release_date,
-      danger_level: data.danger_level,
-      religion: data.religion
-    }, this.getAuthOptions()).subscribe({
+    this.http.put<PrisonerResponse>(
+      `${this.API_URL}/prisoners/${data.prisoner_id}`,
+      {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        credits: data.credits,
+        cell_id: data.cell_id,
+        entry_date: data.entry_date,
+        release_date: data.release_date,
+        danger_level: data.danger_level,
+        religion: data.religion
+      },
+      this.getAuthOptions()
+    ).subscribe({
       next: (res) => {
         const index = this.prisoners.findIndex(i => i.prisoner_id === data.prisoner_id);
         if (index !== -1) {
@@ -364,7 +375,10 @@ export class CustomersPage implements OnInit {
   async getPrisonerAllergens(prisonerId: number): Promise<Allergen[]> {
     try {
       const response = await lastValueFrom(
-        this.http.get<any>(`${this.API_URL}/prisoners/${prisonerId}/allergens`, this.getAuthOptions())
+        this.http.get<any>(
+          `${this.API_URL}/prisoners/${prisonerId}/allergens`,
+          this.getAuthOptions()
+        )
       );
       return response.data;
     } catch (err) {
@@ -394,5 +408,4 @@ export class CustomersPage implements OnInit {
 
     await modal.present();
   }
-
 }

@@ -12,23 +12,35 @@
     </ion-card-header>
 
     <ion-card-content>
+
       <ion-item>
-        <ion-label position="stacked">Search by number</ion-label>
-        <ion-input type="number" placeholder="Enter prisoner number">
+        <ion-label position="stacked">Search (ID / Name)</ion-label>
+        <ion-input
+          placeholder="ID, first name or last name"
+          [(ngModel)]="searchTerm"
+          (ionInput)="applyFilters()">
         </ion-input>
       </ion-item>
 
       <ion-item>
-        <ion-label>Filter</ion-label>
-        <ion-select interface="popover" placeholder="Select filter">
+        <ion-label>Cell</ion-label>
+        <ion-select
+          interface="popover"
+          placeholder="All"
+          [(ngModel)]="selectedCell"
+          (ionChange)="applyFilters()">
           <ion-select-option value="all">All</ion-select-option>
-          <ion-select-option value="active">Active</ion-select-option>
-          <ion-select-option value="inactive">Inactive</ion-select-option>
-          <ion-select-option value="excluded">Excluded</ion-select-option>
+          <ion-select-option *ngFor="let c of cellLetters" [value]="c">
+            {{ c }}
+          </ion-select-option>
         </ion-select>
       </ion-item>
 
-      <ion-button expand="block" class="ion-margin-top" color="primary" (click)="startAddItem()">
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        color="primary"
+        (click)="startAddItem()">
         Add new record
       </ion-button>
     </ion-card-content>
@@ -41,6 +53,7 @@
 
     <ion-card-content>
       <ion-grid>
+
         <ion-row class="table-header">
           <ion-col size="0.5"><strong>ID</strong></ion-col>
           <ion-col size="1"><strong>First name</strong></ion-col>
@@ -56,44 +69,67 @@
 
         <ion-row *ngIf="loading">
           <ion-col>
-            <ion-spinner name="crescent"></ion-spinner> Loading prisoners...
+            <ion-spinner name="crescent"></ion-spinner>
+            Loading customers...
           </ion-col>
         </ion-row>
 
         <ion-row *ngIf="!loading && error">
-          <ion-col color="danger">
-            {{ error }}
+          <ion-col>
+            <ion-text color="danger">
+              {{ error }}
+            </ion-text>
           </ion-col>
         </ion-row>
-
-        <ion-row *ngFor="let prisoner of prisoners" class="ion-align-items-center">
+        <ion-row
+          *ngFor="let prisoner of filteredPrisoners"
+          class="ion-align-items-center">
           <ion-col size="0.5">{{ prisoner.prisoner_id }}</ion-col>
           <ion-col size="1">{{ prisoner.first_name }}</ion-col>
           <ion-col size="1">{{ prisoner.last_name }}</ion-col>
           <ion-col size="1">{{ prisoner.credits }}</ion-col>
           <ion-col size="1">
             {{ cellMap[prisoner.cell_id] || '?' }}
-          </ion-col>          
-          <ion-col size="1">{{ prisoner.entry_date | date: 'shortDate' }}</ion-col>
-          <ion-col size="1">{{ prisoner.release_date | date: 'shortDate' }}</ion-col>
+          </ion-col>
+          <ion-col size="1">
+            {{ prisoner.entry_date | date: 'shortDate' }}
+          </ion-col>
+          <ion-col size="1">
+            {{ prisoner.release_date | date: 'shortDate' }}
+          </ion-col>
           <ion-col size="1">{{ prisoner.danger_level }}</ion-col>
           <ion-col size="1">{{ prisoner.religion }}</ion-col>
           <ion-col size="3">
-            <ion-button fill="clear" size="small" color="medium" (click)="startEditItem(prisoner)">
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              (click)="startEditItem(prisoner)">
               Edit
             </ion-button>
-            <ion-button fill="clear" size="small" color="medium" (click)="deletePrisoner(prisoner.prisoner_id)">
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              (click)="deletePrisoner(prisoner.prisoner_id)">
               Delete
             </ion-button>
-            <ion-button fill="clear" size="small" color="medium" (click)="startCreditCharge(prisoner.prisoner_id)">
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              (click)="startCreditCharge(prisoner.prisoner_id)">
               Charge
             </ion-button>
-            <ion-button fill="clear" size="small" color="medium" (click)="showAllergens(prisoner.prisoner_id)">
+            <ion-button
+              fill="clear"
+              size="small"
+              color="medium"
+              (click)="showAllergens(prisoner.prisoner_id)">
               Allergens
             </ion-button>
           </ion-col>
         </ion-row>
-
 
       </ion-grid>
     </ion-card-content>

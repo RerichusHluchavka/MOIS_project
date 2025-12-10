@@ -6,9 +6,6 @@
 
 <ion-content class="ion-padding">
 
-  <!-- ===================== -->
-  <!-- APPEARANCE -->
-  <!-- ===================== -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Appearance</ion-card-title>
@@ -17,7 +14,6 @@
     <ion-card-content>
       <ion-list>
 
-        <!-- Follow system -->
         <ion-item>
           <ion-icon slot="start" name="desktop-outline"></ion-icon>
           <ion-label>
@@ -30,7 +26,6 @@
           </ion-toggle>
         </ion-item>
 
-        <!-- Dark mode -->
         <ion-item>
           <ion-icon slot="start" name="moon-outline"></ion-icon>
           <ion-label>
@@ -48,9 +43,6 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- ===================== -->
-  <!-- CURRENT USER -->
-  <!-- ===================== -->
   <ion-card>
     <ion-card-header>
       <ion-card-title>Current user</ion-card-title>
@@ -58,17 +50,14 @@
 
     <ion-card-content>
 
-      <!-- loading -->
       <div *ngIf="userLoading" class="ion-text-center ion-padding">
         <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <!-- error -->
       <ion-text color="danger" *ngIf="userError">
         {{ userError }}
       </ion-text>
 
-      <!-- user info -->
       <ion-list *ngIf="!userLoading && currentUser">
 
         <ion-item>
@@ -89,7 +78,6 @@
           </ion-note>
         </ion-item>
 
-        <!-- role change – only admin -->
         <ion-item *ngIf="currentUser.role === 'admin'">
           <ion-label position="stacked">
             Change role
@@ -114,7 +102,6 @@
           </ion-button>
         </ion-item>
 
-        <!-- not admin info -->
         <ion-item *ngIf="currentUser.role !== 'admin'">
           <ion-note color="medium">
             You are not allowed to change roles.

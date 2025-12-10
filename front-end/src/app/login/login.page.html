@@ -10,7 +10,6 @@
 
     <ion-list lines="full">
 
-      <!-- Username -->
       <ion-item>
         <ion-label position="stacked">Username</ion-label>
         <ion-input
@@ -23,7 +22,6 @@
         </ion-input>
       </ion-item>
 
-      <!-- Password -->
       <ion-item>
         <ion-label position="stacked">Password</ion-label>
         <ion-input
@@ -39,17 +37,14 @@
 
     </ion-list>
 
-    <!-- Error message -->
     <ion-text color="danger" *ngIf="errorMessage">
       <p class="ion-padding-top">{{ errorMessage }}</p>
     </ion-text>
 
-    <!-- Loading spinner -->
     <div class="ion-text-center ion-margin-top" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- Submit button -->
     <ion-button
       expand="block"
       class="ion-margin-top"
