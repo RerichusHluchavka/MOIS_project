@@ -16,7 +16,7 @@ export interface InventoryItem {
   item_id: number;
   name: string;
   unit: string;
-  storage_minimum: number;
+  quantity: number;
 }
 
 interface ItemsResponse {
@@ -57,10 +57,10 @@ export class InventoryPage implements OnInit {
   isAddMode = false;
   isEditMode = false;
 
-  formItem: { id?: number; name: string; unit: string; storage_minimum: number } = {
+  formItem: { id?: number; name: string; unit: string; quantity: number } = {
     name: '',
     unit: '',
-    storage_minimum: 0
+    quantity: 0
   };
 
   private readonly API_URL = 'http://localhost/api/inventory';
@@ -96,7 +96,7 @@ export class InventoryPage implements OnInit {
     this.formItem = {
       name: '',
       unit: '',
-      storage_minimum: 0
+      quantity: 0
     };
   }
 
@@ -108,7 +108,7 @@ export class InventoryPage implements OnInit {
       id: item.item_id,
       name: item.name,
       unit: item.unit,
-      storage_minimum: item.storage_minimum
+      quantity: item.quantity
     };
   }
 
@@ -119,7 +119,7 @@ export class InventoryPage implements OnInit {
     this.formItem = {
       name: '',
       unit: '',
-      storage_minimum: 0
+      quantity: 0
     };
   }
 
@@ -131,8 +131,8 @@ export class InventoryPage implements OnInit {
       return;
     }
 
-    if (this.formItem.storage_minimum < 0) {
-      this.formError = 'Storage minimum nesmí být záporné.';
+    if (this.formItem.quantity < 0) {
+      this.formError = 'Quantity nesmí být záporné.';
       return;
     }
 
@@ -149,7 +149,7 @@ export class InventoryPage implements OnInit {
     this.http.post<ItemResponse>(`${this.API_URL}/items`, {
       name: this.formItem.name,
       unit: this.formItem.unit,
-      storage_minimum: this.formItem.storage_minimum
+      quantity: this.formItem.quantity
     }).subscribe({
       next: (res) => {
         this.items.push(res.data);
@@ -170,7 +170,7 @@ export class InventoryPage implements OnInit {
     this.http.put<ItemResponse>(`${this.API_URL}/items/${id}`, {
       name: this.formItem.name,
       unit: this.formItem.unit,
-      storage_minimum: this.formItem.storage_minimum
+      quantity: this.formItem.quantity
     }).subscribe({
       next: (res) => {
         const index = this.items.findIndex(i => i.item_id === id);

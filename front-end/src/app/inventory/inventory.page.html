@@ -30,7 +30,7 @@
         <ion-row class="table-header">
           <ion-col size="2"><strong>ID</strong></ion-col>
           <ion-col size="4"><strong>Name</strong></ion-col>
-          <ion-col size="2"><strong>Storage minimum</strong></ion-col>
+          <ion-col size="2"><strong>Quantity</strong></ion-col>
           <ion-col size="2"><strong>Unit</strong></ion-col>
           <ion-col size="2"><strong>Edit</strong></ion-col>
         </ion-row>
@@ -50,7 +50,7 @@
         <ion-row *ngFor="let item of items">
           <ion-col size="2">{{ item.item_id }}</ion-col>
           <ion-col size="4">{{ item.name }}</ion-col>
-          <ion-col size="2">{{ item.storage_minimum }}</ion-col>
+          <ion-col size="2">{{ item.quantity }}</ion-col>
           <ion-col size="2">{{ item.unit }}</ion-col>
           <ion-col size="2">
             <ion-button
@@ -80,8 +80,8 @@
                 <ion-label position="stacked">Storage minimum</ion-label>
                 <ion-input
                   type="number"
-                  [(ngModel)]="formItem.storage_minimum"
-                  name="storage_minimum"
+                  [(ngModel)]="formItem.quantity"
+                  name="quantity"
                   required>
                 </ion-input>
               </ion-item>

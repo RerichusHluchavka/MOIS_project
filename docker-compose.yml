@@ -144,7 +144,7 @@ services:
       - kitchen-db
     volumes:
       - ./kitchen-service:/app  
-#      - /app/node_modules
+      - /app/node_modules #bylo zakomentované
     networks:
       - prison-net
 

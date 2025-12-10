@@ -56,12 +56,13 @@ export class DispensingPage {
         `${this.KITCHEN_API}/food/${this.foodId}/prisoner/${this.consumerNumber}`
       ).toPromise();
 
-      if (allergyResult?.isAllergic === true) {
+      if (allergyResult?.count > 0) {
         this.status = 'denied';
         this.reason = 'Consumer is allergic to this meal';
         return;
       }
 
+      console.log(this.foodId);
       // 3️⃣ odečtení porce
       await this.http.patch(
         `${this.KITCHEN_API}/today-menu/${this.foodId}/decrease-portions`,

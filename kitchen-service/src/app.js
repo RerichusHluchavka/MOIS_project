@@ -351,6 +351,7 @@ app.get('/food/:foodId/prisoner/:prisonerId', authenticateToken(['admin', 'kitch
     customResponse: true
   })
 );
+
 /*
 pp.post('/today-menu', authenticateToken(['admin', 'kitchen']),
   createRouteHandler({

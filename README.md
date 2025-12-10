@@ -1,5 +1,10 @@
 # MOIS Projekt
 
+## Členové týmu
+Radim Kořiva
+Jaromír Bobek
+Erika Blažeková
+
 ## SETUP Dockeru
 pomocí `docker-compose up --build` nastartování dockeru + vypisování v příkazové řádce zprávy
 
