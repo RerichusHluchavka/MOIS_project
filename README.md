@@ -2,7 +2,9 @@
 
 ## Členové týmu
 Radim Kořiva
+
 Jaromír Bobek
+
 Erika Blažeková
 
 ## SETUP Dockeru
