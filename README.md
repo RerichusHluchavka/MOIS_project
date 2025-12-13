@@ -1,7 +1,7 @@
 # MOIS Projekt
 
 ## Členové týmu
-Radim Kořiva
+Radim Kopřiva
 
 Jaromír Bobek
 
