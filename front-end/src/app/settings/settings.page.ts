@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import {
   IonContent,
@@ -42,7 +43,6 @@ interface CurrentUser {
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
   imports: [
-    IonNote,
     CommonModule,
     FormsModule,
     HttpClientModule,
@@ -62,7 +62,7 @@ interface CurrentUser {
     IonIcon,
     IonText,
     IonSpinner,
-
+    IonNote,
     IonButton,
     IonSelect,
     IonSelectOption
@@ -90,19 +90,26 @@ export class SettingsPage implements OnInit, OnDestroy {
     }
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    const savedDark = localStorage.getItem('darkMode');
     const savedFollowSystem = localStorage.getItem('followSystem');
+    const savedDark = localStorage.getItem('darkMode');
 
-    this.followSystem = savedFollowSystem ? JSON.parse(savedFollowSystem) : false;
+    this.followSystem = savedFollowSystem
+      ? JSON.parse(savedFollowSystem)
+      : false;
+
+    this.darkMode = savedDark
+      ? JSON.parse(savedDark)
+      : false;
 
     if (this.followSystem) {
       this.darkMode = this.prefersDark.matches;
       this.prefersDark.addEventListener('change', this.prefersDarkHandler);
-    } else {
-      this.darkMode = savedDark ? JSON.parse(savedDark) : false;
     }
 
     this.applyTheme(this.darkMode);
@@ -123,7 +130,9 @@ export class SettingsPage implements OnInit, OnDestroy {
       this.prefersDark.addEventListener('change', this.prefersDarkHandler);
     } else {
       this.prefersDark.removeEventListener('change', this.prefersDarkHandler);
-      localStorage.setItem('darkMode', JSON.stringify(this.darkMode));
+      this.darkMode = false;
+      localStorage.setItem('darkMode', JSON.stringify(false));
+      this.applyTheme(false);
     }
   }
 
@@ -156,19 +165,16 @@ export class SettingsPage implements OnInit, OnDestroy {
 
     this.http.post<any>(`${this.AUTH_API}/verify`, {}, { headers }).subscribe({
       next: (res) => {
-        if (res?.user) {
-          this.currentUser = {
-            id: res.user.userId,
-            username: res.user.username,
-            role: res.user.role,
-          };
-        } else {
-          this.currentUser = null;
-        }
+        this.currentUser = res?.user
+          ? {
+              id: res.user.userId,
+              username: res.user.username,
+              role: res.user.role,
+            }
+          : null;
         this.userLoading = false;
       },
-      error: (err) => {
-        console.error('Verify error', err);
+      error: () => {
         this.userError = 'Failed to load user info.';
         this.userLoading = false;
       },
@@ -198,14 +204,17 @@ export class SettingsPage implements OnInit, OnDestroy {
         { headers }
       )
       .subscribe({
-        next: () => {
-          this.roleSaving = false;
-        },
-        error: (err) => {
-          console.error('Change role error', err);
+        next: () => (this.roleSaving = false),
+        error: () => {
           this.roleError = 'Failed to update role.';
           this.roleSaving = false;
         },
       });
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    this.currentUser = null;
+    this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 }
