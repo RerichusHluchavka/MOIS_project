@@ -39,7 +39,6 @@ interface TodayMenuResponse {
 })
 export class DashboardPage implements OnInit {
 
-  // kuchyně jde přes /api/kitchen/
   private readonly API_URL = 'http://localhost/api/kitchen';
 
   loadingStorage = false;
@@ -73,7 +72,6 @@ export class DashboardPage implements OnInit {
     this.loadingStorage = true;
     this.storageError = null;
 
-    // ⚠️ Uprav si název klíče podle toho, jak token ukládáš při přihlášení
     const token = localStorage.getItem('access_token') || localStorage.getItem('token');
 
     if (!token) {
@@ -86,12 +84,10 @@ export class DashboardPage implements OnInit {
       Authorization: `Bearer ${token}`
     });
 
-    // výsledná URL: http://localhost/api/kitchen/today-menu
     this.http.get<TodayMenuResponse>(`${this.API_URL}/today-menu`, { headers }).subscribe({
       next: (res) => {
         const menu = res.data ?? [];
 
-        // Pro jednoduchost: první tři jídla mapujeme na A/B/C
         this.mealsARemaining = menu[0]?.portions_available ?? 0;
         this.mealsBRemaining = menu[1]?.portions_available ?? 0;
         this.mealsCRemaining = menu[2]?.portions_available ?? 0;

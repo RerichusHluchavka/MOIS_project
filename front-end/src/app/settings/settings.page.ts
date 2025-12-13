@@ -137,10 +137,9 @@ export class SettingsPage implements OnInit, OnDestroy {
 
   private applyTheme(enabled: boolean) {
     document.body.classList.toggle('dark', enabled);
-    document.documentElement.classList.toggle('dark', enabled);
+    document.documentElement.classList.toggle('ion-palette-dark', enabled);
   }
 
-  // =============== UŽIVATEL ===============
   private loadCurrentUser() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -176,7 +175,6 @@ export class SettingsPage implements OnInit, OnDestroy {
     });
   }
 
-  // =============== ZMĚNA ROLE (jen admin) ===============
   changeRole() {
     if (!this.currentUser) return;
 

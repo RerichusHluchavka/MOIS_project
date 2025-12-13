@@ -11,6 +11,7 @@
     </ion-card-header>
 
     <ion-card-content>
+
       <ion-item>
         <ion-label position="stacked">Enter consumer number</ion-label>
         <ion-input
@@ -20,18 +21,41 @@
         </ion-input>
       </ion-item>
 
-      <ion-button expand="block" class="ion-margin-top" (click)="checkConsumer()">
+      <ion-button
+        expand="block"
+        class="ion-margin-top"
+        (click)="checkConsumer()">
         Check
       </ion-button>
 
-      <ion-text color="success" *ngIf="status === 'issued'">
-        <h2 class="ion-text-center ion-margin-top">ISSUED ✅</h2>
+      <ion-text
+        color="success"
+        *ngIf="status === 'issued'"
+        class="ion-margin-top ion-padding-top">
+
+        <h1 class="ion-text-center" style="font-size: 3.2rem; font-weight: 700;">
+          ISSUED ✅
+        </h1>
+
       </ion-text>
 
-      <ion-text color="danger" *ngIf="status === 'denied'">
-        <h2 class="ion-text-center ion-margin-top">NOT ISSUED</h2>
-        <p class="ion-text-center">{{ reason }}</p>
+      <ion-text
+        color="danger"
+        *ngIf="status === 'denied'"
+        class="ion-margin-top ion-padding-top">
+
+        <h1 class="ion-text-center" style="font-size: 3.2rem; font-weight: 700;">
+          NOT ISSUED ❌
+        </h1>
+
+        <p
+          class="ion-text-center ion-margin-top"
+          style="font-size: 1.4rem;">
+          {{ reason }}
+        </p>
+
       </ion-text>
+
     </ion-card-content>
   </ion-card>
 </ion-content>
