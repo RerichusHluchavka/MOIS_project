@@ -14,21 +14,15 @@ pomocí `docker-compose up --build -d` se nastartuje docker a bude běžet na po
 
 ## Přístup do databází
 
-Prisoners: `docker exec -it projekt-prisoner-db-1 psql -U admin -d prisoner_db`
+Mely by byt spusteny automaticky skrz `docker-compose up`
 
-Kitchen: `docker exec -it projekt-kitchen-db-1 psql -U admin -d kitchen_db`
+### SQL queries z exportovaných databází jsou v rootu:
+- prisoner_data.sql
+- kitchen_data.sql
+- inventory_data.sql
+- auth_data.sql
 
-Inventory: `docker exec -it projekt-inventory-db-1 psql -U admin -d inventory_db`
-
-Authorizaci: `docker exec -it projekt-auth-db-1 psql -U admin -d auth_db`
-
-### Exportované databáze jsou v rootu:
-- prisoner_export.sql
-- kitchen_export.sql
-- inventory_export.sql
-- auth_export.sql
-
-## Imoprtování databází
+## Importování databází
 Nezkoušel jsem ale mělo by být pomocí:
 
 `docker exec -i <container_name> psql -U <username> -d <database_name> < backup.sql`
